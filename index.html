@@ -308,7 +308,7 @@
     <div class="wrap">
       <h2>The Dirty Diet Coke bar</h2>
       <p>A few starter ideas to get you going. Mix and match the syrups and toppings to make your own.</p>
-      <p class="muted swipe-hint">Swipe to see all six.</p>
+      <p class="muted swipe-hint">Swipe to see them all.</p>
       <div class="cards" id="cards"></div>
       <div class="drink-extras">
         <p><b>Sodas:</b> Diet Coke, Coke Zero, regular Coke, and Sprite.</p>
@@ -512,7 +512,8 @@ const DRINKS = [
   { name: "Midwest Emo\u2011jito", flavors: ["lime", "mint"], type: "Minty", text: "Lime and mint.", note: "Bright and cool." },
   { name: "The One Ring", flavors: ["peach", "vanilla"], type: "Fruity", text: "Peach and vanilla, with a peach ring on the rim.", note: "Sweet, with candy on top." },
   { name: "Counterspell", flavors: ["blueRaspberry", "vanilla"], type: "Sweet", text: "Blue raspberry and vanilla.", note: "Candy-sweet and a little creamy." },
-  { name: "Lightning Bolt", flavors: ["cherry", "lime"], type: "Tart", text: "Cherry and lime.", note: "Tart cherry with a lime kick." }
+  { name: "Lightning Bolt", flavors: ["cherry", "lime"], type: "Tart", text: "Cherry and lime.", note: "Tart cherry with a lime kick." },
+  { name: "Board Wipe", flavors: ["peach", "mint"], base: "sprite", type: "Clear", text: "Sprite with peach and mint.", note: "Light and fresh. No cola at all." }
 ];
 
 const INK = "#26224F";
@@ -526,7 +527,7 @@ function frameFor(d) {
 }
 
 // Draws the glass with whatever goes in and on it.
-function drinkArt(flavors, i) {
+function drinkArt(flavors, i, base) {
   const has = f => flavors.includes(f);
   const clip = `liq${i}`;
   const inside = [];
@@ -540,13 +541,13 @@ function drinkArt(flavors, i) {
   const on = [];
   if (has("lime")) on.push(`<g transform="rotate(25 74 24)"><path d="M62 24 A12 12 0 0 0 86 24Z" fill="#6FA82E" stroke="${INK}" stroke-width="2"/><path d="M65 24 A9 9 0 0 0 83 24Z" fill="#D7EE9E"/><path d="M74 24 V33 M74 24 L67 30 M74 24 L81 30" stroke="#8DC63F" stroke-width="1.2"/></g>`);
   if (has("peach")) on.push(`<circle cx="28" cy="22" r="9" fill="none" stroke="${INK}" stroke-width="8"/><circle cx="28" cy="22" r="9" fill="none" stroke="#F5803E" stroke-width="5.5"/><circle cx="28" cy="22" r="5.6" fill="none" stroke="#FFD25A" stroke-width="2.4"/><circle cx="23" cy="17" r=".9" fill="#fff"/><circle cx="33" cy="25" r=".9" fill="#fff"/><circle cx="26" cy="29" r=".9" fill="#fff"/>`);
-  if (has("mint")) on.push(`<ellipse cx="36" cy="24" rx="10" ry="4.6" transform="rotate(-35 36 24)" fill="#2FA37E" stroke="${INK}" stroke-width="1.6"/><ellipse cx="45" cy="21" rx="9" ry="4.2" transform="rotate(-70 45 21)" fill="#3DBB8F" stroke="${INK}" stroke-width="1.6"/>`);
+  if (has("mint")) on.push(`<g transform="translate(${has("peach") ? 14 : 0} 0)"><ellipse cx="36" cy="24" rx="10" ry="4.6" transform="rotate(-35 36 24)" fill="#2FA37E" stroke="${INK}" stroke-width="1.6"/><ellipse cx="45" cy="21" rx="9" ry="4.2" transform="rotate(-70 45 21)" fill="#3DBB8F" stroke="${INK}" stroke-width="1.6"/></g>`);
   if (has("cherry")) on.push(`<path d="M50 22 Q53 9 63 6" stroke="#4E6B24" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="49" cy="26" r="7.5" fill="#C81F3A" stroke="${INK}" stroke-width="1.8"/><circle cx="46.5" cy="23.5" r="2" fill="#fff" opacity=".7"/>`);
 
   return `<svg viewBox="0 0 100 110" aria-hidden="true">
     <defs><clipPath id="${clip}"><path d="M29.4 32 L70.6 32 L65.7 97 L34.3 97 Z"/></clipPath></defs>
     <path d="M28 20 L72 20 L66 100 L34 100 Z" fill="rgba(255,255,255,.55)"/>
-    <g clip-path="url(#${clip})"><rect x="20" y="30" width="60" height="80" fill="#3B2316"/>${inside.join("")}</g>
+    <g clip-path="url(#${clip})"><rect x="20" y="30" width="60" height="80" fill="${base === "sprite" ? "#D9F2D4" : "#3B2316"}"/>${inside.join("")}</g>
     <path d="M28 20 L72 20 L66 100 L34 100 Z" fill="none" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
     <path d="M62 3 L55 40" stroke="${INK}" stroke-width="6.5" stroke-linecap="round"/><path d="M62 3 L55 40" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
     ${on.join("")}
@@ -559,7 +560,7 @@ function renderCards() {
     <article class="card" aria-label="${d.name}" style="--frame:${frameFor(d)}">
       <div class="card-inner">
         <div class="card-title"><b>${d.name}</b><span class="pips">${d.flavors.map(f => `<span class="pip" title="${FLAVORS[f].label}" style="background:${d.colorless ? COLORLESS : FLAVORS[f].color}"></span>`).join("")}</span></div>
-        <div class="card-art">${drinkArt(d.flavors, i)}</div>
+        <div class="card-art">${drinkArt(d.flavors, i, d.base)}</div>
         <div class="card-type">${d.type}</div>
         <div class="card-text">${d.text}<i>${d.note}</i></div>
       </div>
