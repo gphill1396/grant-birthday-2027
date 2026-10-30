@@ -430,7 +430,7 @@
         </form>
         <div class="board">
           <h3>Requested so far</h3>
-          <p class="hint">Check here first. Doubling up on a song is fine, it just tells the band it's popular.</p>
+          <p class="hint">Check here first. Doubling up on a song is fine, it just tells the band it's popular. Requests show initials only.</p>
           <ul class="setlist" id="songs"><li class="empty">Loading requests…</li></ul>
         </div>
       </div>
@@ -589,6 +589,13 @@ tabs.forEach((t, i) => {
 document.querySelectorAll("[data-open]").forEach(a => a.addEventListener("click", () => openTab(a.dataset.open)));
 
 // Data from the sheet
+// Only initials show on the site, even if a full name comes back.
+function initials(name) {
+  const words = String(name || "").trim().split(/\s+/).filter(Boolean);
+  if (words.length === 1 && /^([A-Z]\.)+$/.test(words[0])) return words[0];
+  const out = words.map(w => w.replace(/^[^A-Za-z0-9]+/, "").charAt(0).toUpperCase()).filter(Boolean).join(".");
+  return out ? out + "." : "";
+}
 function esc(s) { const d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML; }
 
 function renderData(data) {
@@ -598,13 +605,13 @@ function renderData(data) {
   } else {
     songs.innerHTML = data.songs.map(s => `
       <li><span><span class="song">${esc(s.song)}</span> <span class="artist">${esc(s.artist)}</span></span>
-      <span class="count">${s.count > 1 ? s.count + " requests" : "1 request"}</span></li>`).join("");
+      <span class="count">${s.by && s.by.length ? "from " + esc(s.by.map(initials).join(", ")) : (s.count > 1 ? s.count + " requests" : "1 request")}</span></li>`).join("");
   }
   const players = document.getElementById("players");
   if (!data.musicians || !data.musicians.length) {
     players.innerHTML = '<li class="empty">Nobody has signed up yet. Grab a spot.</li>';
   } else {
-    players.innerHTML = data.musicians.map(m => `<li><b>${esc(m.name)}</b> ${esc(m.instruments)}</li>`).join("");
+    players.innerHTML = data.musicians.map(m => `<li><b>${esc(initials(m.name))}</b> ${esc(m.instruments)}</li>`).join("");
   }
   const total = document.getElementById("rsvp-total");
   total.textContent = data.attending ? `${data.attending} people are coming so far.` : "Be the first to RSVP.";

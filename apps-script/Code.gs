@@ -4,6 +4,7 @@
  * Lives in the "Birthday Band Arrangements" Google Sheet
  * (Extensions > Apps Script). Writes RSVPs, song requests and musician
  * sign-ups to their tabs, and returns the public lists the site shows.
+ * Names never leave the sheet: the public lists show initials only.
  *
  * Deploy: Deploy > New deployment > Web app
  *   Execute as: Me
@@ -91,16 +92,18 @@ function publicData() {
     const artist = String(r[3]).trim();
     if (!song) return;
     const key = (song + "|" + artist).toLowerCase();
-    if (!songMap[key]) songMap[key] = { song, artist, count: 0 };
+    if (!songMap[key]) songMap[key] = { song, artist, count: 0, by: [] };
     songMap[key].count++;
+    const who = initials(r[1]);
+    if (who && songMap[key].by.indexOf(who) < 0) songMap[key].by.push(who);
   });
   const songs = Object.values(songMap).sort((a, b) => b.count - a.count || a.song.localeCompare(b.song));
 
-  // Musicians: latest sign-up per person wins.
+  // Musicians: latest sign-up per person wins. Only initials leave the sheet.
   const musMap = {};
   rows("musician").forEach(r => {
     const name = String(r[1]).trim();
-    if (name) musMap[name.toLowerCase()] = { name, instruments: String(r[2]) };
+    if (name) musMap[name.toLowerCase()] = { name: initials(name), instruments: String(r[2]) };
   });
   const musicians = Object.values(musMap).sort((a, b) => a.name.localeCompare(b.name));
 
@@ -124,6 +127,11 @@ function notify(subject, lines) {
   } catch (err) {
     console.error("Email failed: " + err);
   }
+}
+
+/** "Josh Roberts" -> "J.R.", "Val" -> "V." */
+function initials(name) {
+  return String(name || "").trim().split(/\s+/).filter(Boolean).map(w => w.replace(/^[^A-Za-z0-9]+/, "").charAt(0).toUpperCase()).filter(Boolean).join(".") + (String(name || "").trim() ? "." : "");
 }
 
 function sheet(type) {
