@@ -154,7 +154,7 @@
   .drink-extras p { margin: 0; }
 
   /* Sign-up desk */
-  .desk { background: var(--paper-deep); margin-top: 56px; padding: 56px 0 64px; }
+  .desk { background: var(--paper-deep); padding: 56px 0 64px; }
   .tabs { display: flex; flex-wrap: wrap; gap: 8px; margin: 22px 0 0; }
   .tab {
     font: 700 1rem var(--body); padding: 10px 18px; border-radius: 999px; cursor: pointer;
@@ -213,6 +213,17 @@
   .faq details[open] summary::after { content: "\2212"; }
   .faq details p { margin: 0 0 14px; }
 
+
+  /* Drink menu toggle and sticky RSVP */
+  .btn.ghost-ink { background: transparent; color: var(--ink); border-color: var(--ink); margin-top: 4px; }
+  #drink-menu { margin-top: 8px; }
+  .sticky-rsvp {
+    position: fixed; right: 16px; bottom: 16px; z-index: 40; display: none;
+    box-shadow: 3px 3px 0 var(--ink); transition: opacity .2s, transform .2s;
+  }
+  .sticky-rsvp.hide { opacity: 0; transform: translateY(12px); pointer-events: none; }
+  @media (max-width: 760px) { .sticky-rsvp { display: inline-block; } }
+
   /* Easter eggs */
   .hero h1, .hero-kicker { cursor: default; -webkit-user-select: none; user-select: none; }
   .hero-kicker { position: relative; z-index: 1; display: table; }
@@ -263,85 +274,6 @@
 </header>
 
 <main>
-  <section id="night">
-    <div class="wrap">
-      <h2>The night</h2>
-      <p>Times after 7:30 are rough. The band plays two halves, with a couple of songs from Grant's band, mild.form, in between.</p>
-      <ol class="timeline">
-        <li><time>6:00</time><div><strong>Doors open</strong><span class="where">Food, drinks, and games start</span></div></li>
-        <li><time>7:30</time><div><strong>Live band karaoke, first half</strong><span class="where">Basement</span></div></li>
-        <li><time>~8:10</time><div><strong>A song or two from mild.form</strong><span class="where">Basement</span></div></li>
-        <li><time>~8:20</time><div><strong>Live band karaoke, second half</strong><span class="where">Basement</span></div></li>
-        <li><time>~9:00</time><div><strong>Grant flips a cake, then birthday cake</strong><span class="where">Outside, then kitchen</span></div></li>
-        <li><time>~9:30</time><div><strong>Regular karaoke</strong><span class="where">Basement</span></div></li>
-        <li><time>11:00</time><div><strong>Music wraps up</strong><span class="where">Basement</span></div></li>
-        <li><time>All night</time><div><strong>Magic: The Gathering and board games</strong><span class="where">Living room and dining room</span></div></li>
-      </ol>
-    </div>
-  </section>
-
-  <section id="what">
-    <div class="wrap">
-      <h2>What's happening</h2>
-      <div class="guide">
-        <div>
-          <h3>Live band karaoke</h3>
-          <p>Pick a song before November 30 and sing it with a live band.</p>
-        </div>
-        <div>
-          <h3>Games</h3>
-          <p>Magic: The Gathering and board games. Living room and dining room.</p>
-        </div>
-        <div>
-          <h3>Flip cake</h3>
-          <p>Grant flips a cake.</p>
-        </div>
-        <div>
-          <h3>Food</h3>
-          <p>Grilled wings, birthday cake, and whatever snacks and sides everyone brings.</p>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <section id="drinks">
-    <div class="wrap">
-      <h2>The Dirty Diet Coke bar</h2>
-      <p>A few starter ideas to get you going. Mix and match the syrups and toppings to make your own.</p>
-      <p class="muted swipe-hint">Swipe to see them all.</p>
-      <div class="cards" id="cards"></div>
-      <div class="drink-extras">
-        <p><b>Sodas:</b> Diet Coke, Coke Zero, regular Coke, and Sprite.</p>
-        <p><b>Toppings:</b> coconut creamer, whipped cream, limes, mint, peach rings.</p>
-        <p><b>Bring your own:</b> anything you want to mix in is welcome.</p>
-      </div>
-    </div>
-  </section>
-
-  <section id="faq">
-    <div class="wrap">
-      <h2>Good to know</h2>
-      <div class="faq">
-        <details>
-          <summary>Can I bring my kids?</summary>
-          <p>It's going to be a loud night with drinking, so it's best suited to grown-ups. If you need to bring your kids, they're still welcome.</p>
-        </details>
-        <details>
-          <summary>Will Foster be around?</summary>
-          <p>Foster will spend the night in his room, so you won't run into him.</p>
-        </details>
-        <details>
-          <summary>Where do I park?</summary>
-          <p>There's street parking, plus three spots in the driveway. Carpooling helps a lot.</p>
-        </details>
-        <details>
-          <summary>What should I bring?</summary>
-          <p>A snack or side to share, plus anything you want to drink or mix in.</p>
-        </details>
-      </div>
-    </div>
-  </section>
-
   <section class="desk" id="desk">
     <div class="wrap">
       <h2>RSVP and requests</h2>
@@ -482,7 +414,92 @@
       </div>
     </div>
   </section>
+
+  <section id="night">
+    <div class="wrap">
+      <h2>The night</h2>
+      <p>Times after 7:30 are rough. The band plays two halves, with a couple of songs from Grant's band, mild.form, in between.</p>
+      <ol class="timeline">
+        <li><time>6:00</time><div><strong>Doors open</strong><span class="where">Food, drinks, and games start</span></div></li>
+        <li><time>7:30</time><div><strong>Live band karaoke, first half</strong><span class="where">Basement</span></div></li>
+        <li><time>~8:10</time><div><strong>A song or two from mild.form</strong><span class="where">Basement</span></div></li>
+        <li><time>~8:20</time><div><strong>Live band karaoke, second half</strong><span class="where">Basement</span></div></li>
+        <li><time>~9:00</time><div><strong>Grant flips a cake, then birthday cake</strong><span class="where">Outside, then kitchen</span></div></li>
+        <li><time>~9:30</time><div><strong>Regular karaoke</strong><span class="where">Basement</span></div></li>
+        <li><time>11:00</time><div><strong>Music wraps up</strong><span class="where">Basement</span></div></li>
+        <li><time>All night</time><div><strong>Magic: The Gathering and board games</strong><span class="where">Living room and dining room</span></div></li>
+      </ol>
+    </div>
+  </section>
+
+  <section id="what">
+    <div class="wrap">
+      <h2>What's happening</h2>
+      <div class="guide">
+        <div>
+          <h3>Live band karaoke</h3>
+          <p>Pick a song before November 30 and sing it with a live band.</p>
+        </div>
+        <div>
+          <h3>Games</h3>
+          <p>Magic: The Gathering and board games. Living room and dining room.</p>
+        </div>
+        <div>
+          <h3>Flip cake</h3>
+          <p>Grant flips a cake.</p>
+        </div>
+        <div>
+          <h3>Food</h3>
+          <p>Grilled wings, birthday cake, and whatever snacks and sides everyone brings.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="drinks">
+    <div class="wrap">
+      <h2>The Dirty Diet Coke bar</h2>
+      <p>A few starter ideas to get you going. Mix and match the syrups and toppings to make your own.</p>
+      <button class="btn ghost-ink" type="button" id="menu-toggle" aria-expanded="false" aria-controls="drink-menu">See the drink menu</button>
+      <div id="drink-menu" hidden>
+      <p class="muted swipe-hint">Swipe to see them all.</p>
+      <div class="cards" id="cards"></div>
+      </div>
+      <div class="drink-extras">
+        <p><b>Sodas:</b> Diet Coke, Coke Zero, regular Coke, and Sprite.</p>
+        <p><b>Toppings:</b> coconut creamer, whipped cream, limes, mint, peach rings.</p>
+        <p><b>Bring your own:</b> anything you want to mix in is welcome.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="faq">
+    <div class="wrap">
+      <h2>Good to know</h2>
+      <div class="faq">
+        <details>
+          <summary>Can I bring my kids?</summary>
+          <p>It's going to be a loud night with drinking, so it's best suited to grown-ups. If you need to bring your kids, they're still welcome.</p>
+        </details>
+        <details>
+          <summary>Will Foster be around?</summary>
+          <p>Foster will spend the night in his room, so you won't run into him.</p>
+        </details>
+        <details>
+          <summary>Where do I park?</summary>
+          <p>There's street parking, plus three spots in the driveway. Carpooling helps a lot.</p>
+        </details>
+        <details>
+          <summary>What should I bring?</summary>
+          <p>A snack or side to share, plus anything you want to drink or mix in.</p>
+        </details>
+      </div>
+    </div>
+  </section>
+
 </main>
+
+<a class="btn sticky-rsvp" href="#desk" data-open="rsvp" id="sticky-rsvp">RSVP</a>
 
 <footer>
   <div class="wrap">
@@ -898,6 +915,30 @@ const guestsField = document.getElementById("guests-field");
 function syncGuests() { guestsField.hidden = !(parseInt(countInput.value, 10) > 1); }
 countInput.addEventListener("input", syncGuests);
 document.getElementById("form-rsvp").addEventListener("reset", () => setTimeout(syncGuests));
+
+
+// Drink menu opens and closes.
+const menuToggle = document.getElementById("menu-toggle");
+const drinkMenu = document.getElementById("drink-menu");
+menuToggle.addEventListener("click", () => {
+  const open = drinkMenu.hidden;
+  drinkMenu.hidden = !open;
+  menuToggle.setAttribute("aria-expanded", open);
+  menuToggle.textContent = open ? "Hide the drink menu" : "See the drink menu";
+});
+
+// The sticky RSVP button hides while the hero or the RSVP section is on screen.
+const sticky = document.getElementById("sticky-rsvp");
+sticky.addEventListener("click", () => openTab("rsvp"));
+if ("IntersectionObserver" in window) {
+  const visible = new Set();
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => e.isIntersecting ? visible.add(e.target) : visible.delete(e.target));
+    sticky.classList.toggle("hide", visible.size > 0);
+  });
+  io.observe(document.querySelector(".hero"));
+  io.observe(document.getElementById("desk"));
+}
 
 loadData();
 </script>
