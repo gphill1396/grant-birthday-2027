@@ -88,12 +88,15 @@ function doPost(e) {
       if (!base) return json({ ok: false, error: "Pick a soda." });
       const flavors = keysFrom(data.flavors, FLAVOR_KEYS);
       if (flavors.length < 1 || flavors.length > 3) return json({ ok: false, error: "Pick one to three flavors." });
+      // A double pump counts twice. It's saved as "vanilla x2" in the Flavors column.
+      const doubles = keysFrom(data.doubles, flavors);
+      const flavorCell = flavors.map(f => doubles.indexOf(f) >= 0 ? f + " x2" : f).join(",");
       const toppings = keysFrom(data.toppings, TOPPING_KEYS);
       if (toppings.length > MAX_TOPPINGS) return json({ ok: false, error: "Pick up to two toppings." });
       const note = clean(data.note, 60);
-      sheet("drink").appendRow([now, name, drinkName, base, flavors.join(","), toppings.join(","), note, ""]);
+      sheet("drink").appendRow([now, name, drinkName, base, flavorCell, toppings.join(","), note, ""]);
       notify(`New drink card: ${drinkName}`,
-        [`From: ${name}`, `Soda: ${base}`, `Flavors: ${flavors.join(", ")}`, toppings.length && `Toppings: ${toppings.join(", ")}`, note && `Flavor text: ${note}`,
+        [`From: ${name}`, `Soda: ${base}`, `Flavors: ${flavorCell.split(",").join(", ")}`, toppings.length && `Toppings: ${toppings.join(", ")}`, note && `Flavor text: ${note}`,
          "To hide a card, type No in its Show column."]);
     } else {
       return json({ ok: false, error: "Unknown form." });
@@ -143,7 +146,8 @@ function publicData() {
     .map(r => ({
       name: String(r[2]).replace(/^'/, ""),
       base: String(r[3]),
-      flavors: keysFrom(r[4], FLAVOR_KEYS),
+      flavors: keysFrom(String(r[4]).replace(/ x2/g, ""), FLAVOR_KEYS),
+      doubles: keysFrom(String(r[4]).split(",").filter(s => / x2$/.test(s.trim())).map(s => s.replace(/ x2$/, "")).join(","), FLAVOR_KEYS),
       toppings: keysFrom(r[5], TOPPING_KEYS),
       note: String(r[6] || "").replace(/^'/, ""),
       by: initials(r[1])

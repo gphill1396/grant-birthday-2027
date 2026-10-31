@@ -236,6 +236,7 @@
   .card-title b { overflow-wrap: anywhere; }
   .pip { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; border: 1px solid rgba(0,0,0,.55); box-shadow: -1px 1px 0 rgba(0,0,0,.6); }
   .pip svg { width: 11px; height: 11px; }
+  .pip-num { font: 800 10.5px/1 var(--body, sans-serif); color: #2a2626; }
   .card-type { font-size: .78rem; line-height: 1.2; }
   .card-credit { font-size: .7rem; color: rgba(0,0,0,.65); padding: 0 4px; display: flex; justify-content: space-between; }
   .card-inner { grid-template-rows: auto 1fr auto auto auto; }
@@ -543,6 +544,10 @@
               <legend>Flavors <span class="hint">(pick 1 to 3)</span></legend>
               <div class="choices" id="flavor-choices"></div>
             </fieldset>
+            <fieldset id="double-set" hidden>
+              <legend>Double pump <span class="hint">(optional, counts twice)</span></legend>
+              <div class="choices" id="double-choices"></div>
+            </fieldset>
             <fieldset>
               <legend>Toppings <span class="hint">(up to 2)</span></legend>
               <div class="choices" id="topping-choices"></div>
@@ -559,7 +564,7 @@
             <div class="preview-wrap" id="drink-preview" aria-label="Card preview"></div>
             <div class="rules">
               <h4>How the colors work</h4>
-              <p>Cards follow Magic: The Gathering's color rules. Each flavor and topping adds a mana symbol, and the symbols set the frame.</p>
+              <p>Cards follow Magic: The Gathering's color rules. Each flavor and topping adds a mana symbol, and the symbols set the frame. Vanilla adds generic mana, shown as a number, and a double pump counts twice.</p>
               <ul id="color-rules"></ul>
               <p>One color gives that color's frame. Two or more colors give a gold frame. Only colorless flavors give a silver frame.</p>
             </div>
@@ -659,14 +664,14 @@ const BASE_ORDER = Object.keys(BASES);
 
 const DRINKS = [
   { name: "Sol Ring", base: "dietCoke", flavors: ["vanilla"], note: "Smooth and easy. Start here." },
-  { name: "Swords to Plowshares", base: "dietCoke", flavors: ["coconut"], toppings: ["whippedCream"], note: "Soft, sweet, and peaceful." },
+  { name: "Swords to Plowshares", base: "dietCoke", flavors: ["coconut"], note: "Soft, sweet, and peaceful." },
   { name: "Ghost Note", base: "dietCoke", flavors: ["coconut", "lime"], note: "Creamy and tart." },
-  { name: "Seething Song", base: "dietCoke", flavors: ["vanilla"], toppings: ["peachRing"], note: "Sweet, with candy on top." },
-  { name: "Dark Ritual", base: "coke", flavors: ["blackberry"], toppings: ["boba"], note: "Dark fruit with something at the bottom." },
+  { name: "Seething Song", base: "dietCoke", flavors: ["vanilla"], doubles: ["vanilla"], toppings: ["peachRing"], note: "Extra sweet, with candy on top." },
+  { name: "Dark Ritual", base: "coke", flavors: ["blackberry"], note: "Dark, jammy, and gone fast." },
   { name: "Lightning Bolt", base: "coke", flavors: ["cherry"], note: "One flavor. Hits fast." },
   { name: "Midwest Emo‑jito", base: "sprite", flavors: ["lime"], toppings: ["mint"], note: "Bright and cool." },
-  { name: "Negate", base: "sprite", flavors: ["blueRaspberry", "vanilla"], toppings: ["blueberries"], note: "Candy-sweet and a little creamy." },
-  { name: "Savage Twister", base: "sprite", flavors: ["cherry"], toppings: ["mint"], note: "Light and fresh. No cola at all." }
+  { name: "Negate", base: "sprite", flavors: ["blueRaspberry", "vanilla"], note: "Candy-sweet and a little creamy." },
+  { name: "Atarka's Command", base: "sprite", flavors: ["cherry"], toppings: ["mint"], note: "Light and fresh. No cola at all." }
 ];
 
 const byBase = (a, b) => BASE_ORDER.indexOf(a.base) - BASE_ORDER.indexOf(b.base);
@@ -681,10 +686,26 @@ const SYMBOL = {
   G: '<svg viewBox="0 0 20 20"><path d="M10 2.5 4.6 11h2.6L4 15.4h12L12.8 11h2.6Z" fill="#11301c"/><rect x="9" y="15" width="2" height="3" fill="#11301c"/></svg>',
   C: '<svg viewBox="0 0 20 20"><path d="M10 3 16 10 10 17 4 10Z" fill="none" stroke="#2a2626" stroke-width="2"/></svg>'
 };
-function pipHTML(m, title) { return `<span class="pip" title="${title || MANA[m].label}" style="background:${MANA[m].pip}">${SYMBOL[m]}</span>`; }
+function pipHTML(m, title) {
+  if (m === "C") return genericPip(1);
+  return `<span class="pip" title="${title || MANA[m].label}" style="background:${MANA[m].pip}">${SYMBOL[m]}</span>`;
+}
+// Colorless ingredients add generic mana, written as one number first, like {2}{R}.
+function genericPip(n) { return `<span class="pip pip-num" title="${n} generic mana" style="background:${MANA.C.pip}">${n}</span>`; }
+function costHTML(d) {
+  const cost = manaCost(d);
+  const generic = cost.filter(m => m === "C").length;
+  return (generic ? genericPip(generic) : "") + cost.filter(m => m !== "C").map(m => pipHTML(m)).join("");
+}
 
 // The rules: mana cost in WUBRG order, color identity, and frame.
-function manaCost(d) { return d.flavors.map(f => FLAVORS[f].mana).concat((d.toppings || []).map(t => TOPPINGS[t].mana)).sort((a, b) => WUBRG.indexOf(a) - WUBRG.indexOf(b)); }
+// A double pump of a flavor counts twice.
+const isDouble = (d, f) => (d.doubles || []).includes(f);
+function manaCost(d) {
+  return d.flavors.flatMap(f => isDouble(d, f) ? [FLAVORS[f].mana, FLAVORS[f].mana] : [FLAVORS[f].mana])
+    .concat((d.toppings || []).map(t => TOPPINGS[t].mana))
+    .sort((a, b) => WUBRG.indexOf(a) - WUBRG.indexOf(b));
+}
 function identity(d) { return [...new Set(manaCost(d).filter(m => m !== "C"))]; }
 function frameFor(d) {
   const colors = identity(d);
@@ -694,7 +715,7 @@ function frameFor(d) {
 }
 function typeLine(d) {
   const base = BASES[d.base].label;
-  return `Dirty ${base} — ${d.flavors.map(f => FLAVORS[f].label).join(" ")}`;
+  return `Dirty ${base} — ${d.flavors.map(f => (isDouble(d, f) ? "Double " : "") + FLAVORS[f].label).join(" ")}`;
 }
 function toppingLine(d) {
   const t = (d.toppings || []).map(k => TOPPINGS[k].label.toLowerCase());
@@ -741,7 +762,7 @@ function cardHTML(d, credit) {
   return `
     <article class="card" aria-label="${esc(d.name)}" style="--frame:${frameFor(d)}">
       <div class="card-inner">
-        <div class="card-title"><b>${esc(d.name)}</b><span class="pips">${manaCost(d).map(m => pipHTML(m)).join("")}</span></div>
+        <div class="card-title"><b>${esc(d.name)}</b><span class="pips">${costHTML(d)}</span></div>
         <div class="card-art">${drinkArt(d)}</div>
         <div class="card-type">${esc(typeLine(d))}</div>
         <div class="card-text">${topLine ? esc(topLine) : ""}${d.note ? `<i>${esc(d.note)}</i>` : ""}</div>
@@ -763,7 +784,8 @@ function renderCards() {
 // Guest cards come from the sheet. Anything that breaks the rules is skipped.
 function validDrink(d) {
   return d && d.name && BASES[d.base] && Array.isArray(d.flavors) && d.flavors.length >= 1 && d.flavors.length <= MAX_FLAVORS &&
-    d.flavors.every(f => FLAVORS[f]) && (d.toppings || []).length <= MAX_TOPPINGS && (d.toppings || []).every(t => TOPPINGS[t]);
+    d.flavors.every(f => FLAVORS[f]) && (d.toppings || []).length <= MAX_TOPPINGS && (d.toppings || []).every(t => TOPPINGS[t]) &&
+    (d.doubles || []).every(f => d.flavors.includes(f));
 }
 function renderGuestCards(list) {
   const el = document.getElementById("guest-cards");
@@ -780,6 +802,7 @@ function setupBuilder() {
   document.getElementById("base-choices").innerHTML = BASE_ORDER.map((k, i) => chip("radio", "base", k, BASES[k].label)).join("");
   document.querySelector('#base-choices input[value="dietCoke"]').checked = true;
   document.getElementById("flavor-choices").innerHTML = Object.entries(FLAVORS).map(([k, f]) => chip("checkbox", "flavors", k, f.label, pipHTML(f.mana))).join("");
+  document.getElementById("double-choices").innerHTML = Object.entries(FLAVORS).map(([k, f]) => chip("checkbox", "doubles", k, f.label + " ×2", pipHTML(f.mana))).join("");
   document.getElementById("topping-choices").innerHTML = Object.entries(TOPPINGS).map(([k, t]) => chip("checkbox", "toppings", k, t.label, pipHTML(t.mana))).join("");
   const list = (src, m) => Object.values(src).filter(x => x.mana === m).map(x => x.label.toLowerCase()).join(", ");
   document.getElementById("color-rules").innerHTML = ["W", "U", "B", "R", "G", "C"].map(m => {
@@ -790,10 +813,19 @@ function setupBuilder() {
   const form = document.getElementById("form-drink");
   const flavorBoxes = [...form.querySelectorAll('input[name="flavors"]')];
   const toppingBoxes = [...form.querySelectorAll('input[name="toppings"]')];
+  const doubleBoxes = [...form.querySelectorAll('input[name="doubles"]')];
   const cap = (boxes, max) => { const n = boxes.filter(b => b.checked).length; boxes.forEach(b => b.disabled = !b.checked && n >= max); };
   const update = () => {
     cap(flavorBoxes, MAX_FLAVORS);
     cap(toppingBoxes, MAX_TOPPINGS);
+    // Only a flavor that's picked can get a double pump.
+    doubleBoxes.forEach(b => {
+      const picked = flavorBoxes.find(f => f.value === b.value).checked;
+      if (!picked) b.checked = false;
+      b.disabled = !picked;
+      b.closest(".choice").hidden = !picked;
+    });
+    document.getElementById("double-set").hidden = !flavorBoxes.some(b => b.checked);
     const d = draftDrink(form);
     document.getElementById("drink-preview").innerHTML = cardHTML(d, initials(form.querySelector('[name="name"]').value) || "you");
   };
@@ -809,6 +841,7 @@ function draftDrink(form) {
     base: fd.get("base") || "dietCoke",
     flavors: flavors.length ? flavors : ["vanilla"],
     toppings: fd.getAll("toppings"),
+    doubles: fd.getAll("doubles").filter(f => flavors.includes(f)),
     note: (fd.get("note") || "").trim()
   };
 }
