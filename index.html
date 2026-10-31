@@ -697,7 +697,7 @@ function cardHTML(d, credit) {
         <div class="card-art">${drinkArt(d)}</div>
         <div class="card-type">${esc(typeLine(d))}</div>
         <div class="card-text">${topLine ? esc(topLine) : ""}${d.note ? `<i>${esc(d.note)}</i>` : ""}</div>
-        <div class="card-credit" style="color:${creditInk(d)}"><span>${credit ? "Mixed by " + esc(credit) : "House card"}</span><span>${identity(d).length > 1 ? "Gold" : identity(d).length ? MANA[identity(d)[0]].label : "Colorless"}</span></div>
+        <div class="card-credit" style="color:${creditInk(d)}"><span>${credit ? "Mixed by " + esc(credit) : "House card"}</span></div>
       </div>
     </article>`;
 }
