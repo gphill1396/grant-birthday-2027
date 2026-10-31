@@ -907,7 +907,7 @@ function renderData(data) {
   } else {
     songs.innerHTML = data.songs.map(s => `
       <li><span><span class="song">${esc(s.song)}</span> <span class="artist">${esc(s.artist)}</span></span>
-      <span class="count">${s.by && s.by.length ? "from " + esc(s.by.map(initials).join(", ")) : (s.count > 1 ? s.count + " requests" : "1 request")}</span></li>`).join("");
+      <span class="count">${s.count > 1 ? s.count + " requests" : "1 request"}</span></li>`).join("");
   }
   const players = document.getElementById("players");
   if (!data.musicians || !data.musicians.length) {

@@ -110,17 +110,15 @@ function doPost(e) {
 
 /** What the site is allowed to show: songs, who's playing, and a headcount. */
 function publicData() {
-  // Songs: group duplicates, keep requester names private.
+  // Songs: group duplicates. Requesters stay in the sheet only.
   const songMap = {};
   rows("song").forEach(r => {
     const song = String(r[2]).trim();
     const artist = String(r[3]).trim();
     if (!song) return;
     const key = (song + "|" + artist).toLowerCase();
-    if (!songMap[key]) songMap[key] = { song, artist, count: 0, by: [] };
+    if (!songMap[key]) songMap[key] = { song, artist, count: 0 };
     songMap[key].count++;
-    const who = initials(r[1]);
-    if (who && songMap[key].by.indexOf(who) < 0) songMap[key].by.push(who);
   });
   const songs = Object.values(songMap).sort((a, b) => b.count - a.count || a.song.localeCompare(b.song));
 
