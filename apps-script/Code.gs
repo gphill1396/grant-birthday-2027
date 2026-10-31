@@ -22,7 +22,7 @@ const TABS = {
 // Drink card rules. Only these keys can make a card, so every card follows the color rules.
 const BASE_KEYS = ["dietCoke", "coke", "sprite"];
 const FLAVOR_KEYS = ["coconut", "vanilla", "blueRaspberry", "blackberry", "cherry", "lime"];
-const TOPPING_KEYS = ["whippedCream", "blueberries", "oreo", "cherryTop", "peachRing", "mint"];
+const TOPPING_KEYS = ["whippedCream", "blueberries", "boba", "cherryTop", "peachRing", "mint"];
 const MAX_TOPPINGS = 2;
 const MAX_GUEST_CARDS = 60;
 
