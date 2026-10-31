@@ -544,7 +544,7 @@
               <div class="choices" id="flavor-choices"></div>
             </fieldset>
             <fieldset>
-              <legend>Toppings</legend>
+              <legend>Toppings <span class="hint">(up to 2)</span></legend>
               <div class="choices" id="topping-choices"></div>
             </fieldset>
             <div class="field">
@@ -559,16 +559,17 @@
             <div class="preview-wrap" id="drink-preview" aria-label="Card preview"></div>
             <div class="rules">
               <h4>How the colors work</h4>
-              <p>Cards follow Magic: The Gathering's color rules. Each flavor adds a mana symbol, and the symbols set the frame.</p>
+              <p>Cards follow Magic: The Gathering's color rules. Each flavor and topping adds a mana symbol, and the symbols set the frame.</p>
               <ul id="color-rules"></ul>
-              <p>One color gives that color's frame. Two or more colors give a gold frame. Only colorless flavors give a silver frame. Toppings never change the color.</p>
+              <p>One color gives that color's frame. Two or more colors give a gold frame. Only colorless flavors give a silver frame.</p>
             </div>
           </div>
         </div>
       </div>
       <div class="drink-extras">
-        <p><b>Sodas:</b> Diet Coke, Coke Zero, regular Coke, and Sprite.</p>
-        <p><b>Toppings:</b> coconut creamer, whipped cream, limes, mint, peach rings.</p>
+        <p><b>Sodas:</b> Diet Coke, regular Coke, and Sprite.</p>
+        <p><b>Flavors:</b> coconut, vanilla, blue raspberry, blackberry, cherry, lime.</p>
+        <p><b>Toppings:</b> whipped cream, blueberries, blackberries, cherries, peach rings, mint.</p>
         <p><b>Bring your own:</b> anything you want to mix in is welcome.</p>
       </div>
     </div>
@@ -617,7 +618,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXlxYI6kmhPudDFAut7
 const SONG_DEADLINE = new Date("2026-12-01T05:00:00Z");
 
 // ---- Drink cards: Magic: The Gathering color rules ----
-// Each flavor adds one mana symbol. Vanilla is colorless (in Magic, "vanilla" means plain).
+// Every flavor and topping adds one mana symbol. Vanilla is colorless (in Magic, "vanilla" means plain).
 const MANA = {
   W: { label: "White", pip: "#F8F3D0", frame: "#EDE6CC" },
   U: { label: "Blue", pip: "#AAD4F2", frame: "#3E78BE" },
@@ -630,35 +631,42 @@ const GOLD_FRAME = "linear-gradient(160deg, #F1D98A, #D4AE4F 55%, #B8913A)";
 const SILVER_FRAME = "linear-gradient(160deg, #D9D7E0, #B7B4C3 55%, #9C99AB)";
 const WUBRG = ["C", "W", "U", "B", "R", "G"];
 
+// At least one flavor and one topping for each color.
 const FLAVORS = {
-  coconut: { label: "Coconut", mana: "W", color: "#F1ECE2" },
-  vanilla: { label: "Vanilla", mana: "C", color: "#E5CC8F" },
-  blueRaspberry: { label: "Blue Raspberry", mana: "U", color: "#2F7FD8" },
-  cherry: { label: "Cherry", mana: "R", color: "#C81F3A" },
-  peach: { label: "Peach", mana: "R", color: "#F5925E" },
-  lime: { label: "Lime", mana: "G", color: "#8DC63F" },
-  mint: { label: "Mint", mana: "G", color: "#2FA37E" }
+  coconut: { label: "Coconut", mana: "W" },
+  vanilla: { label: "Vanilla", mana: "C" },
+  blueRaspberry: { label: "Blue Raspberry", mana: "U" },
+  blackberry: { label: "Blackberry", mana: "B" },
+  cherry: { label: "Cherry", mana: "R" },
+  lime: { label: "Lime", mana: "G" }
 };
+const TOPPINGS = {
+  whippedCream: { label: "Whipped cream", mana: "W" },
+  blueberries: { label: "Blueberries", mana: "U" },
+  blackberries: { label: "Blackberries", mana: "B" },
+  cherryTop: { label: "Cherry", mana: "R" },
+  peachRing: { label: "Peach ring", mana: "R" },
+  mint: { label: "Mint", mana: "G" }
+};
+const MAX_FLAVORS = 3, MAX_TOPPINGS = 2;
+// Each soda is drawn its own shade.
 const BASES = {
-  dietCoke: { label: "Diet Coke", liquid: "#3B2316" },
-  cokeZero: { label: "Coke Zero", liquid: "#331D12" },
-  coke: { label: "Coke", liquid: "#3E2416" },
+  dietCoke: { label: "Diet Coke", liquid: "#4E2F1D" },
+  coke: { label: "Coke", liquid: "#5B2412" },
   sprite: { label: "Sprite", liquid: "#D9F2D4" }
 };
 const BASE_ORDER = Object.keys(BASES);
-const TOPPINGS = {
-  whippedCream: { label: "Whipped cream" },
-  peachRing: { label: "Peach ring" }
-};
 
 const DRINKS = [
   { name: "Sol Ring", base: "dietCoke", flavors: ["vanilla"], note: "Smooth and easy. Start here." },
+  { name: "Swords to Plowshares", base: "dietCoke", flavors: ["coconut"], toppings: ["whippedCream"], note: "Soft, sweet, and peaceful." },
   { name: "Ghost Note", base: "dietCoke", flavors: ["coconut", "lime"], note: "Creamy and tart." },
-  { name: "Seething Song", base: "dietCoke", flavors: ["peach", "vanilla"], toppings: ["peachRing"], note: "Sweet, with candy on top." },
-  { name: "Lightning Bolt", base: "dietCoke", flavors: ["cherry"], note: "One flavor. Hits fast." },
-  { name: "Midwest Emo‑jito", base: "sprite", flavors: ["lime", "mint"], note: "Bright and cool." },
-  { name: "Negate", base: "sprite", flavors: ["blueRaspberry", "vanilla"], note: "Candy-sweet and a little creamy." },
-  { name: "Savage Twister", base: "sprite", flavors: ["peach", "mint"], note: "Light and fresh. No cola at all." }
+  { name: "Seething Song", base: "dietCoke", flavors: ["vanilla"], toppings: ["peachRing"], note: "Sweet, with candy on top." },
+  { name: "Dark Ritual", base: "coke", flavors: ["blackberry"], toppings: ["blackberries"], note: "Deep, dark, and a little tart." },
+  { name: "Lightning Bolt", base: "coke", flavors: ["cherry"], note: "One flavor. Hits fast." },
+  { name: "Midwest Emo‑jito", base: "sprite", flavors: ["lime"], toppings: ["mint"], note: "Bright and cool." },
+  { name: "Negate", base: "sprite", flavors: ["blueRaspberry", "vanilla"], toppings: ["blueberries"], note: "Candy-sweet and a little creamy." },
+  { name: "Savage Twister", base: "sprite", flavors: ["cherry"], toppings: ["mint"], note: "Light and fresh. No cola at all." }
 ];
 
 const byBase = (a, b) => BASE_ORDER.indexOf(a.base) - BASE_ORDER.indexOf(b.base);
@@ -676,7 +684,7 @@ const SYMBOL = {
 function pipHTML(m, title) { return `<span class="pip" title="${title || MANA[m].label}" style="background:${MANA[m].pip}">${SYMBOL[m]}</span>`; }
 
 // The rules: mana cost in WUBRG order, color identity, and frame.
-function manaCost(d) { return d.flavors.map(f => FLAVORS[f].mana).sort((a, b) => WUBRG.indexOf(a) - WUBRG.indexOf(b)); }
+function manaCost(d) { return d.flavors.map(f => FLAVORS[f].mana).concat((d.toppings || []).map(t => TOPPINGS[t].mana)).sort((a, b) => WUBRG.indexOf(a) - WUBRG.indexOf(b)); }
 function identity(d) { return [...new Set(manaCost(d).filter(m => m !== "C"))]; }
 function frameFor(d) {
   const colors = identity(d);
@@ -704,8 +712,7 @@ function drinkArt(d) {
   const inside = [];
   if (has("blueRaspberry")) inside.push(`<path d="M20 64 Q35 58 50 64 T80 64 V110 H20Z" fill="#2F7FD8" opacity=".85"/>`);
   if (has("cherry")) inside.push(`<path d="M20 72 Q35 66 50 72 T80 72 V110 H20Z" fill="#A3122E" opacity=".75"/>`);
-  if (has("peach")) inside.push(`<path d="M20 76 Q35 70 50 76 T80 76 V110 H20Z" fill="#E07A45" opacity=".55"/>`);
-  if (has("mint") && sprite) inside.push(`<path d="M20 84 Q35 78 50 84 T80 84 V110 H20Z" fill="#2FA37E" opacity=".25"/>`);
+  if (has("blackberry")) inside.push(`<path d="M20 70 Q35 64 50 70 T80 70 V110 H20Z" fill="#3B1238" opacity="${sprite ? ".8" : ".7"}"/>`);
   if (has("vanilla")) inside.push(`<path d="M37 52 C47 45 53 60 63 52" stroke="${swirl}" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".9"/><path d="M38 73 C47 66 54 81 62 73" stroke="${swirl}" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".9"/>`);
   if (has("coconut")) inside.push(`<path d="M20 32 H80 V40 Q72 45 64 40 Q57 35 50 40 Q43 45 36 40 Q28 35 20 40Z" fill="#F4EFE6"/>`);
   inside.push(`<circle cx="44" cy="58" r="2" fill="#fff" opacity=".7"/><circle cx="57" cy="66" r="1.6" fill="#fff" opacity=".6"/><circle cx="49" cy="82" r="1.4" fill="#fff" opacity=".6"/>`);
@@ -714,8 +721,10 @@ function drinkArt(d) {
   if (top("whippedCream")) on.push(`<path d="M31 22 Q31 12 40 13 Q42 4 50 6 Q58 4 60 13 Q69 12 69 22 Z" fill="#FFFDF7" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/><path d="M42 14 Q50 10 58 14" stroke="#E8E1D2" stroke-width="1.4" fill="none"/>`);
   if (has("lime")) on.push(`<g transform="rotate(25 74 24)"><path d="M62 24 A12 12 0 0 0 86 24Z" fill="#6FA82E" stroke="${INK}" stroke-width="2"/><path d="M65 24 A9 9 0 0 0 83 24Z" fill="#D7EE9E"/><path d="M74 24 V33 M74 24 L67 30 M74 24 L81 30" stroke="#8DC63F" stroke-width="1.2"/></g>`);
   if (top("peachRing")) on.push(`<circle cx="28" cy="22" r="9" fill="none" stroke="${INK}" stroke-width="8"/><circle cx="28" cy="22" r="9" fill="none" stroke="#F5803E" stroke-width="5.5"/><circle cx="28" cy="22" r="5.6" fill="none" stroke="#FFD25A" stroke-width="2.4"/><circle cx="23" cy="17" r=".9" fill="#fff"/><circle cx="33" cy="25" r=".9" fill="#fff"/><circle cx="26" cy="29" r=".9" fill="#fff"/>`);
-  if (has("mint")) on.push(`<g transform="translate(${top("peachRing") ? 14 : 0} 0)"><ellipse cx="36" cy="24" rx="10" ry="4.6" transform="rotate(-35 36 24)" fill="#2FA37E" stroke="${INK}" stroke-width="1.6"/><ellipse cx="45" cy="21" rx="9" ry="4.2" transform="rotate(-70 45 21)" fill="#3DBB8F" stroke="${INK}" stroke-width="1.6"/></g>`);
-  if (has("cherry")) on.push(`<path d="M50 22 Q53 9 63 6" stroke="#4E6B24" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="49" cy="26" r="7.5" fill="#C81F3A" stroke="${INK}" stroke-width="1.8"/><circle cx="46.5" cy="23.5" r="2" fill="#fff" opacity=".7"/>`);
+  if (top("mint")) on.push(`<g transform="translate(${top("peachRing") ? 14 : 0} 0)"><ellipse cx="36" cy="24" rx="10" ry="4.6" transform="rotate(-35 36 24)" fill="#2FA37E" stroke="${INK}" stroke-width="1.6"/><ellipse cx="45" cy="21" rx="9" ry="4.2" transform="rotate(-70 45 21)" fill="#3DBB8F" stroke="${INK}" stroke-width="1.6"/></g>`);
+  if (top("blueberries")) on.push(`<g stroke="${INK}" stroke-width="1.4"><circle cx="40" cy="27" r="4.6" fill="#3B5BA8"/><circle cx="48" cy="25" r="4.6" fill="#2F4C93"/><circle cx="44" cy="20" r="4.4" fill="#4A6CBD"/></g><g fill="#AFC3EA"><circle cx="39" cy="25.6" r="1"/><circle cx="47" cy="23.6" r="1"/><circle cx="43" cy="18.6" r="1"/></g>`);
+  if (top("blackberries")) on.push(`<g stroke="${INK}" stroke-width="1.2">${[[38,25],[42,22],[46,25],[42,28],[50,22],[50,28]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.4" fill="#2A0F2A"/>`).join("")}</g><g fill="#7A3C78">${[[37,24],[41,21],[45,24],[49,21]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".9"/>`).join("")}</g>`);
+  if (top("cherryTop")) on.push(`<path d="M50 22 Q53 9 63 6" stroke="#4E6B24" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="49" cy="26" r="7.5" fill="#C81F3A" stroke="${INK}" stroke-width="1.8"/><circle cx="46.5" cy="23.5" r="2" fill="#fff" opacity=".7"/>`);
 
   return `<svg viewBox="0 0 100 110" aria-hidden="true">
     <defs><clipPath id="${clip}"><path d="M29.4 32 L70.6 32 L65.7 97 L34.3 97 Z"/></clipPath></defs>
@@ -753,8 +762,8 @@ function renderCards() {
 
 // Guest cards come from the sheet. Anything that breaks the rules is skipped.
 function validDrink(d) {
-  return d && d.name && BASES[d.base] && Array.isArray(d.flavors) && d.flavors.length >= 1 && d.flavors.length <= 3 &&
-    d.flavors.every(f => FLAVORS[f]) && (d.toppings || []).every(t => TOPPINGS[t]);
+  return d && d.name && BASES[d.base] && Array.isArray(d.flavors) && d.flavors.length >= 1 && d.flavors.length <= MAX_FLAVORS &&
+    d.flavors.every(f => FLAVORS[f]) && (d.toppings || []).length <= MAX_TOPPINGS && (d.toppings || []).every(t => TOPPINGS[t]);
 }
 function renderGuestCards(list) {
   const el = document.getElementById("guest-cards");
@@ -771,17 +780,20 @@ function setupBuilder() {
   document.getElementById("base-choices").innerHTML = BASE_ORDER.map((k, i) => chip("radio", "base", k, BASES[k].label)).join("");
   document.querySelector('#base-choices input[value="dietCoke"]').checked = true;
   document.getElementById("flavor-choices").innerHTML = Object.entries(FLAVORS).map(([k, f]) => chip("checkbox", "flavors", k, f.label, pipHTML(f.mana))).join("");
-  document.getElementById("topping-choices").innerHTML = Object.entries(TOPPINGS).map(([k, t]) => chip("checkbox", "toppings", k, t.label)).join("");
-  const legend = [
-    ["W", "Coconut"], ["U", "Blue raspberry"], ["B", "Nothing on the bar yet"], ["R", "Cherry, peach"], ["G", "Lime, mint"], ["C", "Vanilla"]
-  ];
-  document.getElementById("color-rules").innerHTML = legend.map(([m, txt]) => `<li>${pipHTML(m)}<span><b>${MANA[m].label}:</b> ${txt}</span></li>`).join("");
+  document.getElementById("topping-choices").innerHTML = Object.entries(TOPPINGS).map(([k, t]) => chip("checkbox", "toppings", k, t.label, pipHTML(t.mana))).join("");
+  const list = (src, m) => Object.values(src).filter(x => x.mana === m).map(x => x.label.toLowerCase()).join(", ");
+  document.getElementById("color-rules").innerHTML = ["W", "U", "B", "R", "G", "C"].map(m => {
+    const f = list(FLAVORS, m), t = list(TOPPINGS, m);
+    return `<li>${pipHTML(m)}<span><b>${MANA[m].label}:</b> ${[f, t].filter(Boolean).join("; topped with ")}</span></li>`;
+  }).join("");
 
   const form = document.getElementById("form-drink");
   const flavorBoxes = [...form.querySelectorAll('input[name="flavors"]')];
+  const toppingBoxes = [...form.querySelectorAll('input[name="toppings"]')];
+  const cap = (boxes, max) => { const n = boxes.filter(b => b.checked).length; boxes.forEach(b => b.disabled = !b.checked && n >= max); };
   const update = () => {
-    const picked = flavorBoxes.filter(b => b.checked);
-    flavorBoxes.forEach(b => b.disabled = !b.checked && picked.length >= 3);
+    cap(flavorBoxes, MAX_FLAVORS);
+    cap(toppingBoxes, MAX_TOPPINGS);
     const d = draftDrink(form);
     document.getElementById("drink-preview").innerHTML = cardHTML(d, initials(form.querySelector('[name="name"]').value) || "you");
   };

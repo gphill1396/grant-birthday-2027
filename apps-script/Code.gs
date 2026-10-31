@@ -20,9 +20,10 @@ const TABS = {
 };
 
 // Drink card rules. Only these keys can make a card, so every card follows the color rules.
-const BASE_KEYS = ["dietCoke", "cokeZero", "coke", "sprite"];
-const FLAVOR_KEYS = ["coconut", "vanilla", "blueRaspberry", "cherry", "peach", "lime", "mint"];
-const TOPPING_KEYS = ["whippedCream", "peachRing"];
+const BASE_KEYS = ["dietCoke", "coke", "sprite"];
+const FLAVOR_KEYS = ["coconut", "vanilla", "blueRaspberry", "blackberry", "cherry", "lime"];
+const TOPPING_KEYS = ["whippedCream", "blueberries", "blackberries", "cherryTop", "peachRing", "mint"];
+const MAX_TOPPINGS = 2;
 const MAX_GUEST_CARDS = 60;
 
 // Song requests close at the end of November 30, Eastern time.
@@ -88,6 +89,7 @@ function doPost(e) {
       const flavors = keysFrom(data.flavors, FLAVOR_KEYS);
       if (flavors.length < 1 || flavors.length > 3) return json({ ok: false, error: "Pick one to three flavors." });
       const toppings = keysFrom(data.toppings, TOPPING_KEYS);
+      if (toppings.length > MAX_TOPPINGS) return json({ ok: false, error: "Pick up to two toppings." });
       const note = clean(data.note, 60);
       sheet("drink").appendRow([now, name, drinkName, base, flavors.join(","), toppings.join(","), note, ""]);
       notify(`New drink card: ${drinkName}`,
@@ -146,7 +148,7 @@ function publicData() {
       note: String(r[6] || "").replace(/^'/, ""),
       by: initials(r[1])
     }))
-    .filter(d => d.name && BASE_KEYS.indexOf(d.base) >= 0 && d.flavors.length >= 1 && d.flavors.length <= 3)
+    .filter(d => d.name && BASE_KEYS.indexOf(d.base) >= 0 && d.flavors.length >= 1 && d.flavors.length <= 3 && d.toppings.length <= MAX_TOPPINGS)
     .slice(-MAX_GUEST_CARDS);
 
   return { songs, musicians, attending, drinks };
