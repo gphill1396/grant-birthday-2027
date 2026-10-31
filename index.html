@@ -9,7 +9,14 @@
 <meta property="og:title" content="Shuffle Up And Sing">
 <meta property="og:description" content="Grant's 31st birthday: live band karaoke, Magic: The Gathering and board games, and a Dirty Diet Coke bar. Friday, January 15, 2027.">
 <meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='10' y='4' width='44' height='56' rx='6' fill='%2326224F'/%3E%3Crect x='15' y='9' width='34' height='46' rx='3' fill='%23FF6A4D'/%3E%3Ctext x='32' y='42' font-size='26' font-family='sans-serif' font-weight='900' text-anchor='middle' fill='%2326224F'%3E31%3C/text%3E%3C/svg%3E">
+<meta property="og:image" content="https://gphill1396.github.io/grant-birthday-2027/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://gphill1396.github.io/grant-birthday-2027/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Figtree:ital,wght@0,400;0,700;1,400&family=Big+Shoulders+Display:wght@700;900&display=swap" rel="stylesheet">
@@ -267,6 +274,10 @@
     * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   }
 
+
+  .dupe { margin: -4px 0 14px; padding: 8px 12px; border-radius: 6px; background: #FFF3D6; border: 1.5px solid var(--gold); font-size: .95rem; }
+  .closed-note { font-weight: 700; padding: 14px 16px; border: 2px solid var(--ink); border-radius: 6px; background: var(--white); max-width: 60ch; }
+
   /* Easter eggs */
   .hero h1, .hero-kicker { cursor: default; -webkit-user-select: none; user-select: none; }
   .hero-kicker { position: relative; z-index: 1; display: table; }
@@ -302,6 +313,7 @@
       <dt>When</dt><dd>Friday, January 15, 2027, at 6 PM</dd>
       <dt>Where</dt><dd>Our house</dd>
       <dt>Bring</dt><dd>A snack or side to share, and BYOB</dd>
+      <dt>RSVP</dt><dd>By Friday, January 8</dd>
     </dl>
     <p class="countdown" id="countdown" hidden></p>
     <div class="hero-actions">
@@ -331,6 +343,7 @@
       <!-- RSVP -->
       <div class="panel" role="tabpanel" id="panel-rsvp" aria-labelledby="tab-rsvp">
         <form id="form-rsvp" data-type="rsvp" novalidate>
+          <p class="hint">Please RSVP by Friday, January 8.</p>
           <div class="field">
             <label for="r-name">Your name</label>
             <input id="r-name" name="name" type="text" autocomplete="name" required maxlength="80">
@@ -386,6 +399,7 @@
             <label for="s-artist">Artist</label>
             <input id="s-artist" name="artist" type="text" required maxlength="120">
           </div>
+          <p class="dupe" id="song-dupe" role="status" aria-live="polite" hidden></p>
           <fieldset>
             <legend>Will you sing it?</legend>
             <div class="choices">
@@ -403,7 +417,7 @@
           <p class="status" role="status" aria-live="polite"></p>
         </form>
         <div class="board">
-          <h3>Requested so far</h3>
+          <h3 id="song-progress">Requested so far</h3>
           <p class="hint">Check here first. Doubling up on a song is fine, it just tells the band it's popular.</p>
           <ul class="setlist" id="songs"><li class="empty">Loading requests…</li></ul>
         </div>
@@ -818,7 +832,22 @@ function initials(name) {
 }
 function esc(s) { const d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML; }
 
+let latestSongs = [];
+function songKey(t) { return String(t || "").toLowerCase().replace(/^the\s+/, "").replace(/[^a-z0-9]/g, ""); }
+function checkDupe() {
+  const box = document.getElementById("song-dupe");
+  const title = songKey(document.getElementById("s-song").value);
+  const match = title.length >= 3 && latestSongs.find(x => songKey(x.song) === title);
+  if (!match) { box.hidden = true; return; }
+  box.textContent = `"${match.song}" by ${match.artist} is already requested. You can still send it, and it counts as another vote.`;
+  box.hidden = false;
+}
+
 function renderData(data) {
+  latestSongs = data.songs || [];
+  const n = latestSongs.length;
+  document.getElementById("song-progress").textContent = n ? `${n} song${n === 1 ? "" : "s"} requested so far` : "Requested so far";
+  checkDupe();
   const songs = document.getElementById("songs");
   if (!data.songs || !data.songs.length) {
     songs.innerHTML = '<li class="empty">No requests yet. Yours could be the first.</li>';
@@ -1178,6 +1207,21 @@ if (PRINT_MODE) {
   document.body.classList.add("print-mode");
   document.title = "Print drink cards";
   renderPrint();
+}
+
+
+// Duplicate song check as people type.
+document.getElementById("s-song").addEventListener("input", checkDupe);
+
+// After the party, the forms close.
+const PARTY_OVER = new Date("2027-01-16T05:00:00Z");
+if (new Date() >= PARTY_OVER) {
+  document.querySelectorAll("#desk .panel, #desk .tabs, #form-drink").forEach(el => el.hidden = true);
+  const note = document.createElement("p");
+  note.className = "closed-note";
+  note.textContent = "The party's over, so RSVPs, requests, and sign-ups are closed. Thanks for coming.";
+  document.getElementById("desk-note").replaceWith(note);
+  document.querySelectorAll(".hero-actions, #sticky-rsvp").forEach(el => el.remove());
 }
 
 loadData();
