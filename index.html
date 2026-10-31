@@ -569,7 +569,7 @@
       <div class="drink-extras">
         <p><b>Sodas:</b> Diet Coke, regular Coke, and Sprite.</p>
         <p><b>Flavors:</b> coconut, vanilla, blue raspberry, blackberry, cherry, lime.</p>
-        <p><b>Toppings:</b> whipped cream, blueberries, blackberries, cherries, peach rings, mint.</p>
+        <p><b>Toppings:</b> whipped cream, blueberries, Oreo crumbs, cherries, peach rings, mint.</p>
         <p><b>Bring your own:</b> anything you want to mix in is welcome.</p>
       </div>
     </div>
@@ -643,7 +643,7 @@ const FLAVORS = {
 const TOPPINGS = {
   whippedCream: { label: "Whipped cream", mana: "W" },
   blueberries: { label: "Blueberries", mana: "U" },
-  blackberries: { label: "Blackberries", mana: "B" },
+  oreo: { label: "Oreo crumbs", mana: "B" },
   cherryTop: { label: "Cherry", mana: "R" },
   peachRing: { label: "Peach ring", mana: "R" },
   mint: { label: "Mint", mana: "G" }
@@ -662,7 +662,7 @@ const DRINKS = [
   { name: "Swords to Plowshares", base: "dietCoke", flavors: ["coconut"], toppings: ["whippedCream"], note: "Soft, sweet, and peaceful." },
   { name: "Ghost Note", base: "dietCoke", flavors: ["coconut", "lime"], note: "Creamy and tart." },
   { name: "Seething Song", base: "dietCoke", flavors: ["vanilla"], toppings: ["peachRing"], note: "Sweet, with candy on top." },
-  { name: "Dark Ritual", base: "coke", flavors: ["blackberry"], toppings: ["blackberries"], note: "Deep, dark, and a little tart." },
+  { name: "Dark Ritual", base: "coke", flavors: ["blackberry"], toppings: ["oreo"], note: "Dark fruit and cookie crunch." },
   { name: "Lightning Bolt", base: "coke", flavors: ["cherry"], note: "One flavor. Hits fast." },
   { name: "Midwest Emo‑jito", base: "sprite", flavors: ["lime"], toppings: ["mint"], note: "Bright and cool." },
   { name: "Negate", base: "sprite", flavors: ["blueRaspberry", "vanilla"], toppings: ["blueberries"], note: "Candy-sweet and a little creamy." },
@@ -684,6 +684,8 @@ const SYMBOL = {
 function pipHTML(m, title) { return `<span class="pip" title="${title || MANA[m].label}" style="background:${MANA[m].pip}">${SYMBOL[m]}</span>`; }
 
 // The rules: mana cost in WUBRG order, color identity, and frame.
+// Lowercase a label mid-sentence, but keep brand names like Oreo.
+const lower = label => /^Oreo/.test(label) ? label : label.toLowerCase();
 function manaCost(d) { return d.flavors.map(f => FLAVORS[f].mana).concat((d.toppings || []).map(t => TOPPINGS[t].mana)).sort((a, b) => WUBRG.indexOf(a) - WUBRG.indexOf(b)); }
 function identity(d) { return [...new Set(manaCost(d).filter(m => m !== "C"))]; }
 function frameFor(d) {
@@ -697,7 +699,7 @@ function typeLine(d) {
   return `Dirty ${base} — ${d.flavors.map(f => FLAVORS[f].label).join(" ")}`;
 }
 function toppingLine(d) {
-  const t = (d.toppings || []).map(k => TOPPINGS[k].label.toLowerCase());
+  const t = (d.toppings || []).map(k => lower(TOPPINGS[k].label));
   return t.length ? `Topped with ${t.join(" and ")}.` : "";
 }
 
@@ -723,7 +725,7 @@ function drinkArt(d) {
   if (top("peachRing")) on.push(`<circle cx="28" cy="22" r="9" fill="none" stroke="${INK}" stroke-width="8"/><circle cx="28" cy="22" r="9" fill="none" stroke="#F5803E" stroke-width="5.5"/><circle cx="28" cy="22" r="5.6" fill="none" stroke="#FFD25A" stroke-width="2.4"/><circle cx="23" cy="17" r=".9" fill="#fff"/><circle cx="33" cy="25" r=".9" fill="#fff"/><circle cx="26" cy="29" r=".9" fill="#fff"/>`);
   if (top("mint")) on.push(`<g transform="translate(${top("peachRing") ? 14 : 0} 0)"><ellipse cx="36" cy="24" rx="10" ry="4.6" transform="rotate(-35 36 24)" fill="#2FA37E" stroke="${INK}" stroke-width="1.6"/><ellipse cx="45" cy="21" rx="9" ry="4.2" transform="rotate(-70 45 21)" fill="#3DBB8F" stroke="${INK}" stroke-width="1.6"/></g>`);
   if (top("blueberries")) on.push(`<g stroke="${INK}" stroke-width="1.4"><circle cx="40" cy="27" r="4.6" fill="#3B5BA8"/><circle cx="48" cy="25" r="4.6" fill="#2F4C93"/><circle cx="44" cy="20" r="4.4" fill="#4A6CBD"/></g><g fill="#AFC3EA"><circle cx="39" cy="25.6" r="1"/><circle cx="47" cy="23.6" r="1"/><circle cx="43" cy="18.6" r="1"/></g>`);
-  if (top("blackberries")) on.push(`<g stroke="${INK}" stroke-width="1.2">${[[38,25],[42,22],[46,25],[42,28],[50,22],[50,28]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3.4" fill="#2A0F2A"/>`).join("")}</g><g fill="#7A3C78">${[[37,24],[41,21],[45,24],[49,21]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r=".9"/>`).join("")}</g>`);
+  if (top("oreo")) on.push(`<g stroke="${INK}" stroke-width="1" stroke-linejoin="round">${[[33,27,20],[39,25,-15],[45,28,40],[51,25,10],[57,27,-30],[63,25,25],[42,22,60],[54,21,-45],[48,24,0]].map(([x, y, r]) => `<rect x="${x - 2.4}" y="${y - 2}" width="4.8" height="4" rx="1" fill="#1E1A1C" transform="rotate(${r} ${x} ${y})"/>`).join("")}</g><g fill="#F2ECE0"><circle cx="44" cy="26" r=".9"/><circle cx="55" cy="24" r=".9"/><circle cx="37" cy="24" r=".8"/></g>`);
   if (top("cherryTop")) on.push(`<path d="M50 22 Q53 9 63 6" stroke="#4E6B24" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="49" cy="26" r="7.5" fill="#C81F3A" stroke="${INK}" stroke-width="1.8"/><circle cx="46.5" cy="23.5" r="2" fill="#fff" opacity=".7"/>`);
 
   return `<svg viewBox="0 0 100 110" aria-hidden="true">
@@ -781,7 +783,7 @@ function setupBuilder() {
   document.querySelector('#base-choices input[value="dietCoke"]').checked = true;
   document.getElementById("flavor-choices").innerHTML = Object.entries(FLAVORS).map(([k, f]) => chip("checkbox", "flavors", k, f.label, pipHTML(f.mana))).join("");
   document.getElementById("topping-choices").innerHTML = Object.entries(TOPPINGS).map(([k, t]) => chip("checkbox", "toppings", k, t.label, pipHTML(t.mana))).join("");
-  const list = (src, m) => Object.values(src).filter(x => x.mana === m).map(x => x.label.toLowerCase()).join(", ");
+  const list = (src, m) => Object.values(src).filter(x => x.mana === m).map(x => lower(x.label)).join(", ");
   document.getElementById("color-rules").innerHTML = ["W", "U", "B", "R", "G", "C"].map(m => {
     const f = list(FLAVORS, m), t = list(TOPPINGS, m);
     return `<li>${pipHTML(m)}<span><b>${MANA[m].label}:</b> ${[f, t].filter(Boolean).join("; topped with ")}</span></li>`;
