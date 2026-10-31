@@ -720,8 +720,10 @@ function frameFor(d) {
   return GOLD_FRAME;
 }
 function typeLine(d) {
-  const base = BASES[d.base].label;
-  return `Dirty ${base} — ${d.flavors.map(f => (isDouble(d, f) ? "Double " : "") + FLAVORS[f].label).join(" ")}`;
+  const base = BASES[d.base] ? BASES[d.base].label : "";
+  const flavors = d.flavors.map(f => (isDouble(d, f) ? "Double " : "") + FLAVORS[f].label).join(" ");
+  if (base && flavors) return `Dirty ${base} — ${flavors}`;
+  return base || flavors || "Empty glass";
 }
 function toppingLine(d) {
   const t = (d.toppings || []).map(k => lower(TOPPINGS[k].label));
@@ -743,7 +745,8 @@ function drinkArt(d) {
   if (has("vanilla")) inside.push(`<path d="M37 52 C47 45 53 60 63 52" stroke="${swirl}" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".9"/><path d="M38 73 C47 66 54 81 62 73" stroke="${swirl}" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".9"/>`);
   if (has("coconut")) inside.push(`<path d="M20 32 H80 V40 Q72 45 64 40 Q57 35 50 40 Q43 45 36 40 Q28 35 20 40Z" fill="#F4EFE6"/>`);
   if (top("boba")) inside.push(`<g stroke="${INK}" stroke-width="1">${[[38,93.5],[44,94],[50,93.5],[56,94],[62,93.5],[41,88],[47,88.5],[53,88],[59,88.5],[44,82.5],[56,83]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="3" fill="#1B1416"/>`).join("")}</g>`);
-  inside.push(`<circle cx="44" cy="58" r="2" fill="#fff" opacity=".7"/><circle cx="57" cy="66" r="1.6" fill="#fff" opacity=".6"/><circle cx="49" cy="82" r="1.4" fill="#fff" opacity=".6"/>`);
+  if (!BASES[d.base]) inside.length = 0;
+  else inside.push(`<circle cx="44" cy="58" r="2" fill="#fff" opacity=".7"/><circle cx="57" cy="66" r="1.6" fill="#fff" opacity=".6"/><circle cx="49" cy="82" r="1.4" fill="#fff" opacity=".6"/>`);
 
   const on = [];
   if (top("whippedCream")) on.push(`<path d="M31 22 Q31 12 40 13 Q42 4 50 6 Q58 4 60 13 Q69 12 69 22 Z" fill="#FFFDF7" stroke="${INK}" stroke-width="1.8" stroke-linejoin="round"/><path d="M42 14 Q50 10 58 14" stroke="#E8E1D2" stroke-width="1.4" fill="none"/>`);
@@ -756,9 +759,9 @@ function drinkArt(d) {
   return `<svg viewBox="0 0 100 110" aria-hidden="true">
     <defs><clipPath id="${clip}"><path d="M29.4 32 L70.6 32 L65.7 97 L34.3 97 Z"/></clipPath></defs>
     <path d="M28 20 L72 20 L66 100 L34 100 Z" fill="rgba(255,255,255,.55)"/>
-    <g clip-path="url(#${clip})"><rect x="20" y="30" width="60" height="80" fill="${BASES[d.base].liquid}"/>${inside.join("")}</g>
+    <g clip-path="url(#${clip})">${BASES[d.base] ? `<rect x="20" y="30" width="60" height="80" fill="${BASES[d.base].liquid}"/>` : ""}${inside.join("")}</g>
     <path d="M28 20 L72 20 L66 100 L34 100 Z" fill="none" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>
-    <path d="M62 3 L55 40" stroke="${INK}" stroke-width="6.5" stroke-linecap="round"/><path d="M62 3 L55 40" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>
+    ${BASES[d.base] ? `<path d="M62 3 L55 40" stroke="${INK}" stroke-width="6.5" stroke-linecap="round"/><path d="M62 3 L55 40" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/>` : ""}
     ${on.join("")}
   </svg>`;
 }
@@ -806,7 +809,6 @@ function chip(type, name, value, label, extra) {
 }
 function setupBuilder() {
   document.getElementById("base-choices").innerHTML = BASE_ORDER.map((k, i) => chip("radio", "base", k, BASES[k].label)).join("");
-  document.querySelector('#base-choices input[value="dietCoke"]').checked = true;
   document.getElementById("flavor-choices").innerHTML = Object.entries(FLAVORS).map(([k, f]) => chip("checkbox", "flavors", k, f.label, pipHTML(f.mana))).join("");
   document.getElementById("double-choices").innerHTML = Object.entries(FLAVORS).map(([k, f]) => chip("checkbox", "doubles", k, f.label + " ×2", pipHTML(f.mana))).join("");
   document.getElementById("topping-choices").innerHTML = Object.entries(TOPPINGS).map(([k, t]) => chip("checkbox", "toppings", k, t.label, pipHTML(t.mana))).join("");
@@ -836,7 +838,7 @@ function setupBuilder() {
     document.getElementById("drink-preview").innerHTML = cardHTML(d, initials(form.querySelector('[name="name"]').value) || "you");
   };
   form.addEventListener("input", update);
-  form.addEventListener("reset", () => setTimeout(() => { form.querySelector('#base-choices input[value="dietCoke"]').checked = true; update(); }));
+  form.addEventListener("reset", () => setTimeout(update));
   update();
 }
 function draftDrink(form) {
@@ -844,8 +846,8 @@ function draftDrink(form) {
   const flavors = fd.getAll("flavors");
   return {
     name: (fd.get("drinkName") || "").trim() || "Your drink",
-    base: fd.get("base") || "dietCoke",
-    flavors: flavors.length ? flavors : ["vanilla"],
+    base: fd.get("base") || "",
+    flavors,
     toppings: fd.getAll("toppings"),
     doubles: fd.getAll("doubles").filter(f => flavors.includes(f)),
     note: (fd.get("note") || "").trim()
@@ -956,6 +958,7 @@ function validate(form, data) {
   if (data.type === "musician" && !data.instruments && !data.other) return "Pick at least one instrument.";
   if (data.type === "drink") {
     if (!data.drinkName || !data.drinkName.trim()) return "Give your drink a name.";
+    if (!data.base) return "Pick a soda.";
     const n = (data.flavors || "").split(",").filter(x => x.trim()).length;
     if (n < 1) return "Pick at least one flavor.";
     if (n > 3) return "Pick up to three flavors.";
