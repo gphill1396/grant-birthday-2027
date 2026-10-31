@@ -3,7 +3,7 @@
 Party site for Grant's 31st birthday, Friday, January 15, 2027: live band karaoke, Magic and board games, and a Dirty Diet Coke bar.
 
 - `index.html` is the whole site. GitHub Pages serves it as is, with no build step.
-- `apps-script/Code.gs` is the backend. It saves RSVPs, song requests and musician sign-ups to the "Birthday Band Arrangements" Google Sheet and returns the public lists the site shows (songs requested, who's playing, headcount). Requester names and RSVP names stay in the sheet.
+- `apps-script/Code.gs` is the backend. It saves RSVPs, song requests and musician sign-ups to the "Birthday Band Arrangements" Google Sheet and returns the public lists the site shows (songs requested, who's playing, headcount). Names never leave the sheet; the site shows no names or initials.
 
 ## Turn on the forms (one time, about 5 minutes)
 

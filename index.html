@@ -465,7 +465,7 @@
           <p class="status" role="status" aria-live="polite"></p>
         </form>
         <div class="board">
-          <h3>Who's playing</h3>
+          <h3>Signed up so far</h3>
           <ul class="players" id="players"><li class="empty">Loading musicians…</li></ul>
         </div>
       </div>
@@ -775,7 +775,7 @@ function cardHTML(d, credit) {
         <div class="card-art">${drinkArt(d)}</div>
         <div class="card-type">${esc(typeLine(d))}</div>
         <div class="card-text">${topLine ? esc(topLine) : ""}${d.note ? `<i>${esc(d.note)}</i>` : ""}</div>
-        <div class="card-credit" style="color:${creditInk(d)}"><span>${credit ? "Mixed by " + esc(credit) : "House card"}</span></div>
+        <div class="card-credit" style="color:${creditInk(d)}"><span>${credit ? esc(credit) : "House card"}</span></div>
       </div>
     </article>`;
 }
@@ -799,7 +799,7 @@ function validDrink(d) {
 function renderGuestCards(list) {
   const el = document.getElementById("guest-cards");
   const cards = (list || []).filter(validDrink).sort(byBase);
-  el.innerHTML = cards.length ? cards.map(d => cardHTML(d, initials(d.by || ""))).join("") : '<p class="empty">No guest cards yet. Make the first one.</p>';
+  el.innerHTML = cards.length ? cards.map(d => cardHTML(d, "Guest card")).join("") : '<p class="empty">No guest cards yet. Make the first one.</p>';
   if (typeof foilOn !== "undefined" && foilOn) el.querySelectorAll(".card").forEach(c => c.classList.add("foil"));
 }
 
@@ -835,7 +835,7 @@ function setupBuilder() {
     });
     document.getElementById("double-set").hidden = !flavorBoxes.some(b => b.checked);
     const d = draftDrink(form);
-    document.getElementById("drink-preview").innerHTML = cardHTML(d, initials(form.querySelector('[name="name"]').value) || "you");
+    document.getElementById("drink-preview").innerHTML = cardHTML(d, "Your card");
   };
   form.addEventListener("input", update);
   form.addEventListener("reset", () => setTimeout(update));
@@ -876,13 +876,6 @@ tabs.forEach((t, i) => {
 document.querySelectorAll("[data-open]").forEach(a => a.addEventListener("click", () => openTab(a.dataset.open)));
 
 // Data from the sheet
-// Only initials show on the site, even if a full name comes back.
-function initials(name) {
-  const words = String(name || "").trim().split(/\s+/).filter(Boolean);
-  if (words.length === 1 && /^([A-Z]\.)+$/.test(words[0])) return words[0];
-  const out = words.map(w => w.replace(/^[^A-Za-z0-9]+/, "").charAt(0).toUpperCase()).filter(Boolean).join(".");
-  return out ? out + "." : "";
-}
 function esc(s) { const d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML; }
 
 let latestSongs = [];
@@ -913,7 +906,15 @@ function renderData(data) {
   if (!data.musicians || !data.musicians.length) {
     players.innerHTML = '<li class="empty">Nobody has signed up yet. Grab a spot.</li>';
   } else {
-    players.innerHTML = data.musicians.map(m => `<li><b>${esc(initials(m.name))}</b> ${esc(m.instruments)}</li>`).join("");
+    // No names: just how many people play each instrument.
+    const counts = {};
+    data.musicians.forEach(m => String(m.instruments || "").split(",").map(x => x.trim()).filter(Boolean).forEach(x => {
+      const key = x.toLowerCase();
+      counts[key] = counts[key] || { label: x.charAt(0).toUpperCase() + x.slice(1), n: 0 };
+      counts[key].n++;
+    }));
+    players.innerHTML = Object.values(counts).sort((a, b) => b.n - a.n || a.label.localeCompare(b.label))
+      .map(c => `<li><b>${esc(c.label)}</b> ${c.n} ${c.n > 1 ? "people" : "person"}</li>`).join("");
   }
   const total = document.getElementById("rsvp-total");
   renderGuestCards(data.drinks);
@@ -1244,7 +1245,7 @@ let printGuests = [];
 function renderPrint() {
   const root = document.getElementById("print-root");
   const cards = DRINKS.slice().sort(byBase).map(d => cardHTML(d))
-    .concat(printGuests.filter(validDrink).sort(byBase).map(d => cardHTML(d, initials(d.by || ""))));
+    .concat(printGuests.filter(validDrink).sort(byBase).map(d => cardHTML(d, "Guest card")));
   const short = Math.max(0, PRINT_TARGET - cards.length);
   const sheets = [];
   for (let i = 0; i < cards.length; i += 9) sheets.push(cards.slice(i, i + 9));

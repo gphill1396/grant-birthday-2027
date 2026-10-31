@@ -4,7 +4,7 @@
  * Lives in the "Birthday Band Arrangements" Google Sheet
  * (Extensions > Apps Script). Writes RSVPs, song requests and musician
  * sign-ups to their tabs, and returns the public lists the site shows.
- * Names never leave the sheet: the public lists show initials only.
+ * Names never leave the sheet: the public lists show no names or initials.
  *
  * Deploy: Deploy > New deployment > Web app
  *   Execute as: Me
@@ -122,13 +122,13 @@ function publicData() {
   });
   const songs = Object.values(songMap).sort((a, b) => b.count - a.count || a.song.localeCompare(b.song));
 
-  // Musicians: latest sign-up per person wins. Only initials leave the sheet.
+  // Musicians: latest sign-up per person wins. Only the instruments leave the sheet, never names.
   const musMap = {};
   rows("musician").forEach(r => {
     const name = String(r[1]).trim();
-    if (name) musMap[name.toLowerCase()] = { name: initials(name), instruments: String(r[2]) };
+    if (name) musMap[name.toLowerCase()] = { instruments: String(r[2]) };
   });
-  const musicians = Object.values(musMap).sort((a, b) => a.name.localeCompare(b.name));
+  const musicians = Object.values(musMap);
 
   // Headcount: latest RSVP per person, counting only "Yes".
   const rsvpMap = {};
@@ -147,8 +147,7 @@ function publicData() {
       flavors: keysFrom(String(r[4]).replace(/ x2/g, ""), FLAVOR_KEYS),
       doubles: keysFrom(String(r[4]).split(",").filter(s => / x2$/.test(s.trim())).map(s => s.replace(/ x2$/, "")).join(","), FLAVOR_KEYS),
       toppings: keysFrom(r[5], TOPPING_KEYS),
-      note: String(r[6] || "").replace(/^'/, ""),
-      by: initials(r[1])
+      note: String(r[6] || "").replace(/^'/, "")
     }))
     .filter(d => d.name && BASE_KEYS.indexOf(d.base) >= 0 && d.flavors.length >= 1 && d.flavors.length <= 3 && d.toppings.length <= MAX_TOPPINGS)
     .slice(-MAX_GUEST_CARDS);
@@ -165,11 +164,6 @@ function notify(subject, lines) {
   } catch (err) {
     console.error("Email failed: " + err);
   }
-}
-
-/** "Josh Roberts" -> "J.R.", "Val" -> "V." */
-function initials(name) {
-  return String(name || "").trim().split(/\s+/).filter(Boolean).map(w => w.replace(/^[^A-Za-z0-9]+/, "").charAt(0).toUpperCase()).filter(Boolean).join(".") + (String(name || "").trim() ? "." : "");
 }
 
 function sheet(type) {
