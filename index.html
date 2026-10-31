@@ -323,7 +323,6 @@
         <div class="board">
           <h3>Who's coming</h3>
           <p class="muted" id="rsvp-total">Loading RSVPs…</p>
-          <p class="muted">Names stay private. Grant sees the full list.</p>
           <p class="muted">Plans changed? Send it again with the same name and the newest answer counts.</p>
         </div>
       </div>
@@ -362,7 +361,7 @@
         </form>
         <div class="board">
           <h3>Requested so far</h3>
-          <p class="hint">Check here first. Doubling up on a song is fine, it just tells the band it's popular. Requests show initials only.</p>
+          <p class="hint">Check here first. Doubling up on a song is fine, it just tells the band it's popular.</p>
           <ul class="setlist" id="songs"><li class="empty">Loading requests…</li></ul>
         </div>
       </div>
@@ -526,9 +525,9 @@ const FLAVORS = {
 const DRINKS = [
   { name: "Sol Ring", flavors: ["vanilla"], colorless: true, type: "Colorless", text: "Vanilla.", note: "Smooth and easy. Start here." },
   { name: "Ghost Note", flavors: ["coconut", "lime"], type: "Classic", text: "Coconut and lime.", note: "Creamy and tart." },
-  { name: "Midwest Emo\u2011jito", flavors: ["lime", "mint"], type: "Minty", text: "Lime and mint.", note: "Bright and cool." },
+  { name: "Midwest Emo\u2011jito", flavors: ["lime", "mint"], base: "sprite", type: "Minty", text: "Sprite with lime and mint.", note: "Bright and cool." },
   { name: "The One Ring", flavors: ["peach", "vanilla"], type: "Fruity", text: "Peach and vanilla, with a peach ring on the rim.", note: "Sweet, with candy on top." },
-  { name: "Counterspell", flavors: ["blueRaspberry", "vanilla"], type: "Sweet", text: "Blue raspberry and vanilla.", note: "Candy-sweet and a little creamy." },
+  { name: "Counterspell", flavors: ["blueRaspberry", "vanilla"], base: "sprite", type: "Sweet", text: "Sprite with blue raspberry and vanilla.", note: "Candy-sweet and a little creamy." },
   { name: "Lightning Bolt", flavors: ["cherry", "lime"], type: "Tart", text: "Cherry and lime.", note: "Tart cherry with a lime kick." },
   { name: "Board Wipe", flavors: ["peach", "mint"], base: "sprite", type: "Clear", text: "Sprite with peach and mint.", note: "Light and fresh. No cola at all." }
 ];
@@ -551,7 +550,8 @@ function drinkArt(flavors, i, base) {
   if (has("blueRaspberry")) inside.push(`<path d="M20 64 Q35 58 50 64 T80 64 V110 H20Z" fill="#2F7FD8" opacity=".85"/>`);
   if (has("cherry")) inside.push(`<path d="M20 72 Q35 66 50 72 T80 72 V110 H20Z" fill="#A3122E" opacity=".75"/>`);
   if (has("peach")) inside.push(`<path d="M20 76 Q35 70 50 76 T80 76 V110 H20Z" fill="#E07A45" opacity=".55"/>`);
-  if (has("vanilla")) inside.push(`<path d="M37 52 C47 45 53 60 63 52" stroke="#EAD6A2" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".9"/><path d="M38 73 C47 66 54 81 62 73" stroke="#EAD6A2" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".9"/>`);
+  const swirl = base === "sprite" ? "#B8913F" : "#EAD6A2";
+  if (has("vanilla")) inside.push(`<path d="M37 52 C47 45 53 60 63 52" stroke="${swirl}" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".9"/><path d="M38 73 C47 66 54 81 62 73" stroke="${swirl}" stroke-width="2.6" fill="none" stroke-linecap="round" opacity=".9"/>`);
   if (has("coconut")) inside.push(`<path d="M20 32 H80 V40 Q72 45 64 40 Q57 35 50 40 Q43 45 36 40 Q28 35 20 40Z" fill="#F4EFE6"/>`);
   inside.push(`<circle cx="44" cy="58" r="2" fill="#fff" opacity=".7"/><circle cx="57" cy="66" r="1.6" fill="#fff" opacity=".6"/><circle cx="49" cy="82" r="1.4" fill="#fff" opacity=".6"/>`);
 
