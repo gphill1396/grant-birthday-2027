@@ -245,7 +245,7 @@
   .choices .pip { margin-right: 4px; vertical-align: -3px; }
 
 
-  /* Print mode (?print): poker-size cards with bleed, 8 per landscape letter page */
+  /* Print mode (?print): poker-size cards with a thin trim border, 3x3 per portrait letter page */
   #print-root { display: none; }
   body.print-mode > *:not(#print-root):not(script) { display: none !important; }
   body.print-mode { background: #fff; }
@@ -253,18 +253,13 @@
   .print-bar { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; margin-bottom: 18px; font-weight: 700; }
   .print-bar .count.short { color: var(--err); }
   .print-tips { max-width: 70ch; font-size: .95rem; color: var(--ink-soft); margin-bottom: 18px; }
-  .print-sheet { display: grid; grid-template-columns: repeat(4, 66.5mm); grid-auto-rows: 91.9mm; width: max-content; }
+  .print-sheet { display: grid; grid-template-columns: repeat(3, 64.5mm); grid-auto-rows: 89.9mm; width: max-content; margin: 0 auto; }
   .print-sheet + .print-sheet { margin-top: 12mm; }
-  .print-slot { width: 66.5mm; height: 91.9mm; background: #17142f; padding: 1.5mm; outline: .2mm dashed #9a96b0; outline-offset: -.1mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .print-slot { width: 64.5mm; height: 89.9mm; background: #17142f; padding: .5mm; outline: .2mm dashed #9a96b0; outline-offset: -.1mm; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .print-slot .card { width: 63.5mm; height: 88.9mm; aspect-ratio: auto; border-radius: 0; padding: 2.4mm; box-shadow: none; cursor: default; transform: none !important; }
   .print-slot .card-inner { border-radius: 1.6mm; }
-  .print-back { height: 100%; display: grid; place-items: center; text-align: center; color: var(--paper);
-    background-color: var(--ink); background-image: radial-gradient(rgba(255,106,77,.35) 1px, transparent 1.2px); background-size: 2.2mm 2.2mm;
-    border: 1.2mm solid var(--coral); border-radius: 2mm; }
-  .print-back b { display: block; font-family: var(--display); font-weight: 900; font-size: 13mm; line-height: .85; text-shadow: .7mm .7mm 0 var(--coral); }
-  .print-back span { display: block; margin-top: 4mm; font-weight: 700; color: var(--gold); font-size: 3.4mm; }
   @media print {
-    @page { size: letter landscape; margin: 5mm; }
+    @page { size: letter portrait; margin: 4.5mm auto; }
     body.print-mode #print-root { padding: 0; }
     .print-bar, .print-tips { display: none !important; }
     .print-sheet { break-after: page; }
@@ -1167,22 +1162,17 @@ function renderPrint() {
   const root = document.getElementById("print-root");
   const cards = DRINKS.slice().sort(byBase).map(d => cardHTML(d))
     .concat(printGuests.filter(validDrink).sort(byBase).map(d => cardHTML(d, initials(d.by || ""))));
-  const withBacks = document.getElementById("print-backs") ? document.getElementById("print-backs").checked : false;
   const short = Math.max(0, PRINT_TARGET - cards.length);
   const sheets = [];
-  for (let i = 0; i < cards.length; i += 8) sheets.push(cards.slice(i, i + 8));
-  const back = '<div class="print-back"><div><b>Shuffle<br>Up And<br>Sing</b><span>Grant\'s 31st</span></div></div>';
-  const backSheets = withBacks ? sheets.map(sh => sh.map(() => back)) : [];
+  for (let i = 0; i < cards.length; i += 9) sheets.push(cards.slice(i, i + 9));
   root.innerHTML = `
     <div class="print-bar">
       <span class="count ${short ? "short" : ""}">${cards.length} cards${short ? `, ${short} short of ${PRINT_TARGET}` : ""}</span>
-      <label><input type="checkbox" id="print-backs" ${withBacks ? "checked" : ""}> Include card backs</label>
       <button class="btn" type="button" id="print-go">Print</button>
     </div>
-    <p class="print-tips">Print at 100% scale (not "fit to page") on cardstock, landscape. Each card prints at poker size, 63.5 by 88.9 mm, with a thin dark border to trim. Glue with a glue stick so the cards stay flat, trim to the blank card's edge, and sleeve them all in matching sleeves.</p>
-    ${sheets.concat(backSheets).map(sh => `<div class="print-sheet">${sh.map(c => `<div class="print-slot">${c}</div>`).join("")}</div>`).join("")}`;
+    <p class="print-tips">Print at 100% scale (not "fit to page"), portrait, nine cards per page. Each card prints at poker size, 63.5 by 88.9 mm, with a thin dark border to trim. If the top or bottom row gets clipped, set the printer to minimum or borderless margins. Glue with a glue stick so the cards stay flat, trim to the blank card's edge, and sleeve them all in matching sleeves.</p>
+    ${sheets.map(sh => `<div class="print-sheet">${sh.map(c => `<div class="print-slot">${c}</div>`).join("")}</div>`).join("")}`;
   document.getElementById("print-go").addEventListener("click", () => window.print());
-  document.getElementById("print-backs").addEventListener("change", renderPrint);
 }
 if (PRINT_MODE) {
   document.body.classList.add("print-mode");
