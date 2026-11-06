@@ -627,7 +627,7 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxXlxYI6kmhPudDFAut7Gh9heO_LOEPmdk69x3DxhxTuf9lOecwIjYpDxL8RVft-EVT0Q/exec";
 
 // Spotify playlist of the requested songs. Leave blank to hide it.
-const SPOTIFY_PLAYLIST = "5ohGV0Dhw0a54BMVwZeaBB";
+const SPOTIFY_PLAYLIST = ""; // hidden until the playlist is public; was 5ohGV0Dhw0a54BMVwZeaBB
 if (SPOTIFY_PLAYLIST) {
   const box = document.getElementById("playlist");
   box.insertAdjacentHTML("beforeend", `<iframe title="Song requests playlist on Spotify" src="https://open.spotify.com/embed/playlist/${SPOTIFY_PLAYLIST}?utm_source=generator" allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" loading="lazy"></iframe>`);
