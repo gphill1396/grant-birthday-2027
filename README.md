@@ -21,6 +21,7 @@ After you change `Code.gs` later, use Deploy > Manage deployments > Edit > New v
 
 - `SCRIPT_URL`: the Apps Script web app URL.
 - `SONG_DEADLINE`: song requests close at the end of November 30, Eastern. The same date is in `Code.gs`.
+- `SPOTIFY_PLAYLIST`: the Spotify playlist ID shown under the song requests. Leave blank to hide it. The playlist must be public.
 - `DRINKS`: the Dirty Diet Coke bar cards.
 - `EVENT`: the calendar details (6 to 11 PM Eastern).
 
