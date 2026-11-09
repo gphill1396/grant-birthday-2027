@@ -187,6 +187,8 @@
   .choice input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
   .choice > span { display: inline-block; padding: 7px 14px; border: 2px solid var(--ink-soft); border-radius: 999px; font-size: .95rem; }
   .choice input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+  .choice input:disabled { cursor: not-allowed; }
+  .choice input:disabled + span { opacity: .4; }
   .choice input:focus-visible + span { outline: 3px solid var(--coral); outline-offset: 2px; }
   .hp { position: absolute; left: -9999px; }
   .status { margin: 12px 0 0; font-weight: 700; min-height: 1.5em; }
@@ -237,6 +239,10 @@
 
   /* Card system: Magic color rules */
   .card-title b { overflow-wrap: anywhere; }
+  .card-title.long b { font-size: .95rem; }
+  .pips { flex-wrap: wrap; justify-content: flex-end; max-width: 80px; }
+  .card-art { min-height: 52px; }
+  .card-text { overflow: hidden; }
   .pip { display: inline-grid; place-items: center; width: 17px; height: 17px; border-radius: 50%; border: 1px solid rgba(0,0,0,.55); box-shadow: -1px 1px 0 rgba(0,0,0,.6); }
   .pip svg { width: 11px; height: 11px; }
   .pip-num { font: 800 10.5px/1 var(--body, sans-serif); color: #2a2626; }
@@ -785,7 +791,7 @@ function cardHTML(d, credit) {
   return `
     <article class="card" aria-label="${esc(d.name)}" style="--frame:${frameFor(d)}">
       <div class="card-inner">
-        <div class="card-title"><b>${esc(d.name)}</b><span class="pips">${costHTML(d)}</span></div>
+        <div class="card-title${String(d.name).length > 16 ? " long" : ""}"><b>${esc(d.name)}</b><span class="pips">${costHTML(d)}</span></div>
         <div class="card-art">${drinkArt(d)}</div>
         <div class="card-type">${esc(typeLine(d))}</div>
         <div class="card-text">${topLine ? esc(topLine) : ""}${d.note ? `<i>${esc(d.note)}</i>` : ""}</div>
@@ -890,7 +896,8 @@ tabs.forEach((t, i) => {
 document.querySelectorAll("[data-open]").forEach(a => a.addEventListener("click", () => openTab(a.dataset.open)));
 
 // Data from the sheet
-function esc(s) { const d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML; }
+// Escapes quotes too, so guest text can't break out of an HTML attribute.
+function esc(s) { const d = document.createElement("div"); d.textContent = s == null ? "" : String(s); return d.innerHTML.replace(/"/g, "&quot;").replace(/'/g, "&#39;"); }
 
 let latestSongs = [];
 function songKey(t) { return String(t || "").toLowerCase().replace(/^the\s+/, "").replace(/[^a-z0-9]/g, ""); }
@@ -933,7 +940,7 @@ function renderData(data) {
   const total = document.getElementById("rsvp-total");
   renderGuestCards(data.drinks);
   if (typeof PRINT_MODE !== "undefined" && PRINT_MODE) { printGuests = data.drinks || []; renderPrint(); }
-  total.textContent = data.attending ? `${data.attending} people are coming so far.` : "Be the first to RSVP.";
+  total.textContent = data.attending ? (data.attending === 1 ? "1 person is coming so far." : `${data.attending} people are coming so far.`) : "Be the first to RSVP.";
 }
 
 function showOffline(msg) {
@@ -1077,7 +1084,7 @@ function drumFill() {
 
 function confetti() {
   if (reduceMotion) return;
-  const colors = Object.values(FLAVORS).map(f => f.color).concat(["#FF6A4D", "#F2B63D"]);
+  const colors = ["W", "U", "B", "R", "G"].map(m => MANA[m].frame).concat(["#FF6A4D", "#F2B63D"]);
   for (let i = 0; i < 40; i++) {
     const c = document.createElement("div");
     c.className = "confetti";
@@ -1145,7 +1152,7 @@ document.querySelector("#drinks h2").addEventListener("dblclick", () => {
 const KONAMI = ["ArrowUp","ArrowUp","ArrowDown","ArrowDown","ArrowLeft","ArrowRight","ArrowLeft","ArrowRight","b","a"];
 let keys = [], typed = "";
 document.addEventListener("keydown", e => {
-  if (e.target.closest("input, textarea, select")) return;
+  if (!e.key || !e.target.closest || e.target.closest("input, textarea, select")) return;
   keys = keys.concat(e.key.length === 1 ? e.key.toLowerCase() : e.key).slice(-KONAMI.length);
   if (keys.join() === KONAMI.join()) { foil(); confetti(); }
   if (e.key.length === 1) typed = (typed + e.key.toLowerCase()).slice(-12);
