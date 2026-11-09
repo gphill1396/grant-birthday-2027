@@ -6,6 +6,7 @@
 <title>Shuffle Up And Sing</title>
 <meta name="description" content="Grant's 31st birthday: live band karaoke, Magic: The Gathering and board games, and a Dirty Diet Coke bar. Friday, January 15, 2027.">
 <meta name="theme-color" content="#26224F">
+<meta name="robots" content="noindex, nofollow">
 <meta property="og:title" content="Shuffle Up And Sing">
 <meta property="og:description" content="Grant's 31st birthday: live band karaoke, Magic: The Gathering and board games, and a Dirty Diet Coke bar. Friday, January 15, 2027.">
 <meta property="og:type" content="website">
@@ -332,7 +333,7 @@
       <a class="btn ghost" href="#desk" data-open="play">Sign up to play</a>
     </div>
     <div class="cal-links">
-      <button class="btn ghost" type="button" id="add-ics">Add to calendar</button>
+      <a class="btn ghost" id="add-ics" href="shuffle-up-and-sing.ics">Add to calendar</a>
       <a class="btn ghost" id="add-google" target="_blank" rel="noopener">Add to Google Calendar</a>
     </div>
   </div>
@@ -389,7 +390,7 @@
         <div class="board">
           <h3>Who's coming</h3>
           <p class="muted" id="rsvp-total">Loading RSVPs…</p>
-          <p class="muted">Plans changed? Send it again with the same name and the newest answer counts.</p>
+          <p class="muted" id="rsvp-change">Plans changed? Send it again with the same name and the newest answer counts.</p>
         </div>
       </div>
 
@@ -507,7 +508,7 @@
       <div class="guide">
         <div>
           <h3>Live band karaoke</h3>
-          <p>Pick a song before November 30 and sing it with a live band.</p>
+          <p id="guide-karaoke">Pick a song before November 30 and sing it with a live band.</p>
         </div>
         <div>
           <h3>Games</h3>
@@ -641,6 +642,8 @@ if (SPOTIFY_PLAYLIST) {
 }
 // Song requests close at the end of November 30, Eastern time.
 const SONG_DEADLINE = new Date("2026-12-01T05:00:00Z");
+// RSVPs close at the end of January 8, Eastern time.
+const RSVP_DEADLINE = new Date("2027-01-09T05:00:00Z");
 
 // ---- Drink cards: Magic: The Gathering color rules ----
 // Every flavor and topping adds one mana symbol. Vanilla is colorless (in Magic, "vanilla" means plain).
@@ -903,6 +906,7 @@ let latestSongs = [];
 function songKey(t) { return String(t || "").toLowerCase().replace(/^the\s+/, "").replace(/[^a-z0-9]/g, ""); }
 function checkDupe() {
   const box = document.getElementById("song-dupe");
+  if (!box) return;
   const title = songKey(document.getElementById("s-song").value);
   const match = title.length >= 3 && latestSongs.find(x => songKey(x.song) === title);
   if (!match) { box.hidden = true; return; }
@@ -1023,11 +1027,28 @@ document.querySelectorAll("form").forEach(form => {
   });
 });
 
+// A closed form is swapped for a short note. The list beside it stays.
+function closeForm(id, text) {
+  const form = document.getElementById(id);
+  const note = document.createElement("p");
+  note.className = "closed-note";
+  note.textContent = text;
+  form.replaceWith(note);
+}
 function applyDeadline() {
-  if (new Date() < SONG_DEADLINE) return;
-  const form = document.getElementById("form-song");
-  form.querySelectorAll("input, textarea, button").forEach(el => el.disabled = true);
-  document.getElementById("song-deadline").textContent = "Song requests closed November 30. The band is learning the list now.";
+  const now = new Date();
+  if (now >= SONG_DEADLINE) {
+    closeForm("form-song", "Song requests closed November 30. The band is learning the list now.");
+    document.getElementById("tab-song").textContent = "Song list";
+    document.querySelector('.hero-actions [data-open="song"]').textContent = "See the song list";
+    document.getElementById("guide-karaoke").textContent = "Sing with a live band. Requests closed November 30, and the song list is up top.";
+    document.getElementById("desk-note").textContent = "Let us know you're coming, see the song list, or sign up to play.";
+  }
+  if (now >= RSVP_DEADLINE) {
+    closeForm("form-rsvp", "RSVPs closed January 8. If your plans change, text Grant or Cass.");
+    document.querySelectorAll('.hero-actions [data-open="rsvp"], #sticky-rsvp').forEach(el => el.remove());
+    document.getElementById("rsvp-change").remove();
+  }
 }
 
 renderCards();
@@ -1211,28 +1232,13 @@ document.getElementById("add-google").href =
   "&dates=" + EVENT.start + "/" + EVENT.end +
   "&details=" + encodeURIComponent(EVENT.details + " " + location.href) +
   "&location=" + encodeURIComponent(EVENT.location);
-function icsText(t) { return t.replace(/\\/g, "\\\\").replace(/([,;])/g, "\\$1"); }
-document.getElementById("add-ics").addEventListener("click", () => {
-  const ics = [
-    "BEGIN:VCALENDAR", "VERSION:2.0", "PRODID:-//Shuffle Up And Sing//EN", "BEGIN:VEVENT",
-    "UID:shuffle-up-and-sing-2027@party", "DTSTAMP:" + new Date().toISOString().replace(/[-:]/g, "").slice(0, 15) + "Z",
-    "DTSTART:" + EVENT.start, "DTEND:" + EVENT.end,
-    "SUMMARY:" + icsText(EVENT.title), "DESCRIPTION:" + icsText(EVENT.details), "LOCATION:" + icsText(EVENT.location),
-    "END:VEVENT", "END:VCALENDAR"
-  ].join("\r\n");
-  const url = URL.createObjectURL(new Blob([ics], { type: "text/calendar" }));
-  const a = document.createElement("a");
-  a.href = url; a.download = "shuffle-up-and-sing.ics";
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-});
-
 // Show the guest names box when more than one person is coming.
 const countInput = document.getElementById("r-count");
 const guestsField = document.getElementById("guests-field");
-function syncGuests() { guestsField.hidden = !(parseInt(countInput.value, 10) > 1); }
-countInput.addEventListener("input", syncGuests);
-document.getElementById("form-rsvp").addEventListener("reset", () => setTimeout(syncGuests));
+function syncGuests() { if (countInput) guestsField.hidden = !(parseInt(countInput.value, 10) > 1); }
+if (countInput) countInput.addEventListener("input", syncGuests);
+const rsvpForm = document.getElementById("form-rsvp");
+if (rsvpForm) rsvpForm.addEventListener("reset", () => setTimeout(syncGuests));
 
 
 // Drink menu opens and closes.
@@ -1247,8 +1253,7 @@ menuToggle.addEventListener("click", () => {
 
 // The sticky RSVP button hides while the hero or the RSVP section is on screen.
 const sticky = document.getElementById("sticky-rsvp");
-sticky.addEventListener("click", () => openTab("rsvp"));
-if ("IntersectionObserver" in window) {
+if (sticky && "IntersectionObserver" in window) {
   const visible = new Set();
   const io = new IntersectionObserver(entries => {
     entries.forEach(e => e.isIntersecting ? visible.add(e.target) : visible.delete(e.target));
@@ -1287,7 +1292,7 @@ if (PRINT_MODE) {
 
 
 // Duplicate song check as people type.
-document.getElementById("s-song").addEventListener("input", checkDupe);
+if (document.getElementById("s-song")) document.getElementById("s-song").addEventListener("input", checkDupe);
 
 // After the party, the forms close.
 const PARTY_OVER = new Date("2027-01-16T05:00:00Z");

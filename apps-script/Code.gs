@@ -29,6 +29,9 @@ const MAX_GUEST_CARDS = 60;
 // Song requests close at the end of November 30, Eastern time.
 const SONG_DEADLINE = new Date("2026-12-01T05:00:00Z");
 
+// RSVPs close at the end of January 8, Eastern time.
+const RSVP_DEADLINE = new Date("2027-01-09T05:00:00Z");
+
 const MAX_LEN = 500;
 
 // Where sign-up emails go. Leave blank to send them to the account that owns this script.
@@ -57,6 +60,7 @@ function doPost(e) {
   try {
     const now = new Date();
     if (data.type === "rsvp") {
+      if (now >= RSVP_DEADLINE) return json({ ok: false, error: "RSVPs closed January 8. Text Grant or Cass." });
       const attending = oneOf(data.attending, ["Yes", "Maybe", "No"]);
       if (!attending) return json({ ok: false, error: "Choose whether you're coming." });
       const people = Math.min(Math.max(parseInt(data.count, 10) || 1, 1), 6);

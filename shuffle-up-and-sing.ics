@@ -1,0 +1,16 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Shuffle Up And Sing//EN
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+UID:shuffle-up-and-sing-2027@party
+DTSTAMP:20261109T200000Z
+DTSTART:20270115T230000Z
+DTEND:20270116T040000Z
+SUMMARY:Shuffle Up And Sing (Grant's birthday)
+DESCRIPTION:Live band karaoke\, Magic: The Gathering and board games\, and a Dirty Diet Coke bar. Bring a snack or side\, and BYOB.
+LOCATION:Grant and Cass's house
+URL:https://gphill1396.github.io/grant-birthday-2027/
+END:VEVENT
+END:VCALENDAR
